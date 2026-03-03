@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   BarChart3, 
   TrendingUp, 
@@ -25,14 +25,12 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  mockDailyStats, 
-  mockMenuStats, 
-  mockHourlyStats 
-} from '@/lib/mock-data';
+import { DailyStats, MenuStats } from '@/lib/types';
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
+  const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
+  const [menuStats, setMenuStats] = useState<MenuStats[]>([]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('th-TH', {
@@ -50,10 +48,10 @@ export default function AnalyticsPage() {
   };
 
   // Calculate totals
-  const totalSales = mockDailyStats.reduce((sum, d) => sum + d.totalSales, 0);
-  const totalOrders = mockDailyStats.reduce((sum, d) => sum + d.totalOrders, 0);
-  const totalFees = mockDailyStats.reduce((sum, d) => sum + d.platformFees, 0);
-  const netSales = mockDailyStats.reduce((sum, d) => sum + d.netSales, 0);
+  const totalSales = dailyStats.reduce((sum: number, d: DailyStats) => sum + d.totalSales, 0);
+  const totalOrders = dailyStats.reduce((sum: number, d: DailyStats) => sum + d.totalOrders, 0);
+  const totalFees = dailyStats.reduce((sum: number, d: DailyStats) => sum + d.platformFees, 0);
+  const netSales = dailyStats.reduce((sum: number, d: DailyStats) => sum + d.netSales, 0);
 
   return (
     <div className="space-y-6">
@@ -163,7 +161,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={mockDailyStats}>
+              <LineChart data={dailyStats}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
                 <XAxis dataKey="date" tickFormatter={formatDate} className="text-xs" />
                 <YAxis tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} className="text-xs" />
@@ -183,7 +181,7 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockDailyStats}>
+              <BarChart data={dailyStats}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
                 <XAxis dataKey="date" tickFormatter={formatDate} className="text-xs" />
                 <YAxis className="text-xs" />
@@ -214,7 +212,7 @@ export default function AnalyticsPage() {
                 </tr>
               </thead>
               <tbody>
-                {mockMenuStats.map((menu, index) => {
+                {menuStats.map((menu: MenuStats, index: number) => {
                   const percentage = (menu.revenue / totalSales) * 100;
                   return (
                     <tr key={menu.menuId} className="border-b hover:bg-slate-50">

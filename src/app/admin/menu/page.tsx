@@ -29,7 +29,7 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
-import { mockMenuStats } from '@/lib/mock-data';
+// Menu stats will be fetched from API
 
 interface MenuItem {
   id: string;
@@ -42,22 +42,11 @@ interface MenuItem {
   soldCount: number;
 }
 
-// Extended menu with mock data
-const initialMenuItems: MenuItem[] = [
-  { id: '1', name: 'ก๋วยเตี๋ยวเนื้อ', description: 'ก๋วยเตี๋ยวเนื้อวัวสดใหม่ น้ำซุปเข้มข้น', price: 60, category: 'ก๋วยเตี๋ยว', available: true, soldCount: 156 },
-  { id: '2', name: 'ก๋วยเตี๋ยวต้มยำ', description: 'ก๋วยเตี๋ยวรสชาติจัดจ้าน ต้มยำร้อน', price: 65, category: 'ก๋วยเตี๋ยว', available: true, soldCount: 89 },
-  { id: '3', name: 'ก๋วยเตี๋ยวไก่', description: 'ก๋วยเตี๋ยวเนื้อไก่ น้ำซุปใส', price: 55, category: 'ก๋วยเตี๋ยว', available: true, soldCount: 124 },
-  { id: '4', name: 'ลูกชิ้นปิ้ง', description: 'ลูกชิ้นปิ้งสดใหม่ 5 เหล่า', price: 15, category: 'อื่นๆ', available: true, soldCount: 200 },
-  { id: '5', name: 'น้ำแข็งใส', description: 'น้ำแข็งใสผลไม้สด', price: 15, category: 'เครื่องดื่ม', available: true, soldCount: 180 },
-  { id: '6', name: 'ข้าวไก่เทศ', description: 'ข้าวไก่เทศราดซอสพิเศษ', price: 49, category: 'อาหารจานเดียว', available: false, soldCount: 45 },
-  { id: '7', name: 'น้ำเต้าหู้', description: 'น้ำเต้าหู้เย็นหวานน้อย', price: 20, category: 'เครื่องดื่ม', available: true, soldCount: 95 },
-  { id: '8', name: 'น้ำมะตูม', description: 'น้ำมะตูมสดชื่น', price: 25, category: 'เครื่องดื่ม', available: true, soldCount: 67 },
-];
-
+// Menu items will be fetched from API
 const categories = ['ทั้งหมด', 'ก๋วยเตี๋ยว', 'อาหารจานเดียว', 'เครื่องดื่ม', 'อื่นๆ'];
 
 export default function MenuPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ทั้งหมด');
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);

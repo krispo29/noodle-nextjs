@@ -2,10 +2,10 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { 
-  Coffee, 
   LayoutDashboard, 
   BarChart3, 
   ShoppingCart, 
@@ -97,9 +97,13 @@ export default function AdminLayout({
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-slate-200 dark:border-slate-700">
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
-            <div className="w-10 h-10 bg-orange-500 rounded-lg flex items-center justify-center">
-              <Coffee className="w-6 h-6 text-white" />
-            </div>
+            <Image 
+              src="/images/logos/logo_noodle.png" 
+              alt="ก๋วยเตี๋ยว" 
+              width={40} 
+              height={40}
+              className="w-10 h-10 rounded-lg object-contain"
+            />
             {sidebarOpen && (
               <span className="font-bold text-lg">ก๋วยเตี๋ยว</span>
             )}

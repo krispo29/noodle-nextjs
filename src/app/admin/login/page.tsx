@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
-import { Coffee, Lock, User, AlertCircle } from 'lucide-react';
+import { Lock, User, AlertCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -52,8 +53,14 @@ export default function LoginPage() {
       
       <Card className="w-full max-w-md relative shadow-xl border-0">
         <CardHeader className="text-center pb-2">
-          <div className="mx-auto w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-4">
-            <Coffee className="w-8 h-8 text-white" />
+          <div className="mx-auto w-16 h-16 bg-orange-500 rounded-full flex items-center justify-center mb-4 overflow-hidden">
+            <Image 
+              src="/images/logos/logo_noodle.png" 
+              alt="ก๋วยเตี๋ยว" 
+              width={48} 
+              height={48}
+              className="w-full h-full object-contain"
+            />
           </div>
           <CardTitle className="text-2xl font-bold">เข้าสู่ระบบ Admin</CardTitle>
           <CardDescription>

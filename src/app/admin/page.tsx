@@ -56,13 +56,11 @@ import {
   calculateOrderSummary,
   Order,
   OrderStatus,
-  OrderItem
+  OrderItem,
+  DailyStats,
+  MenuStats,
+  HourlyStats
 } from '@/lib/types';
-import {
-  mockDailyStats,
-  mockMenuStats,
-  mockHourlyStats
-} from '@/lib/mock-data';
 
 // Status colors and labels
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
@@ -79,6 +77,9 @@ const COLORS = ['#f97316', '#fb923c', '#fdba74', '#fed7aa', '#ffedd5', '#fff7ed'
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [dailyStats, setDailyStats] = useState<DailyStats[]>([]);
+  const [menuStats, setMenuStats] = useState<MenuStats[]>([]);
+  const [hourlyStats, setHourlyStats] = useState<HourlyStats[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showNewOrderNotification, setShowNewOrderNotification] = useState(true);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily');
@@ -252,7 +253,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <AreaChart data={mockDailyStats}>
+              <AreaChart data={dailyStats}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
@@ -293,7 +294,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={mockHourlyStats}>
+              <BarChart data={hourlyStats}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
                 <XAxis 
                   dataKey="hour" 
@@ -323,7 +324,7 @@ export default function AdminDashboard() {
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
-                  data={mockMenuStats}
+                  data={menuStats}
                   cx="50%"
                   cy="50%"
                   innerRadius={60}
@@ -334,7 +335,7 @@ export default function AdminDashboard() {
                   label={({ name, percent }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`}
                   labelLine={false}
                 >
-                  {mockMenuStats.map((entry, index) => (
+                  {dailyStats.map((entry: DailyStats, index: number) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
@@ -342,7 +343,7 @@ export default function AdminDashboard() {
               </PieChart>
             </ResponsiveContainer>
             <div className="mt-4 space-y-2">
-              {mockMenuStats.slice(0, 3).map((menu, index) => (
+              {menuStats.slice(0, 3).map((menu: MenuStats, index: number) => (
                 <div key={menu.menuId} className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-2">
                     <span className="w-6 h-6 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center text-xs font-bold">
@@ -364,7 +365,7 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={mockDailyStats.slice(0, 5)} layout="vertical">
+              <BarChart data={dailyStats.slice(0, 5)} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" className="stroke-slate-200" />
                 <XAxis type="number" tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`} />
                 <YAxis dataKey="date" type="category" tickFormatter={(value) => formatDate(value)} width={80} />
@@ -377,13 +378,13 @@ export default function AdminDashboard() {
               <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
                 <p className="text-green-600 dark:text-green-400 text-sm">กำไรเฉลี่ย/วัน</p>
                 <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {formatCurrency(mockDailyStats.reduce((sum, d) => sum + d.netSales, 0) / mockDailyStats.length)}
+                  {formatCurrency(dailyStats.reduce((sum: number, d: DailyStats) => sum + d.netSales, 0) / dailyStats.length)}
                 </p>
               </div>
               <div className="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg">
                 <p className="text-red-600 dark:text-red-400 text-sm">ค่าธรรมเนียมรวม</p>
                 <p className="text-2xl font-bold text-red-600 dark:text-red-400">
-                  {formatCurrency(mockDailyStats.reduce((sum, d) => sum + d.platformFees, 0))}
+                  {formatCurrency(dailyStats.reduce((sum: number, d: DailyStats) => sum + d.platformFees, 0))}
                 </p>
               </div>
             </div>
