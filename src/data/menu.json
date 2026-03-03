@@ -1,0 +1,66 @@
+[
+  {
+    "id": "item-1",
+    "name": "ก๋วยเตี๋ยวเรือหมูน้ำตก",
+    "description": "ก๋วยเตี๋ยวเรือรสเข้มข้น หอมกลิ่นเครื่องเทศ พร้อมหมูตุ๋นและลูกชิ้น",
+    "price": 50,
+    "isRecommended": true,
+    "image": "https://images.unsplash.com/photo-1552611052-33e04de081de?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-2",
+    "name": "ก๋วยเตี๋ยวเรือต้มยำ",
+    "description": "รสจัดจ้าน ครบรส เปรี้ยว เผ็ด หวาน หอมถั่วคั่วและมะนาวแท้",
+    "price": 55,
+    "isRecommended": true,
+    "image": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-3",
+    "name": "บะหมี่หมูแดง",
+    "description": "บะหมี่ไข่เส้นเหนียวนุ่ม หมูแดงย่างเตาถ่านสูตรพิเศษ ราดน้ำชุ่มฉ่ำ",
+    "price": 50,
+    "isRecommended": false,
+    "image": "https://images.unsplash.com/photo-1626804475297-41609ea0dc4c?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-4",
+    "name": "เกาเหลาหมูตุ๋น",
+    "description": "หมูตุ๋นเปื่อยๆ ในน้ำซุปพะโล้รสละมุน เสิร์ฟพร้อมข้าวสวยร้อนๆ",
+    "price": 60,
+    "isRecommended": false,
+    "image": "https://images.unsplash.com/photo-1628108422650-f1cbae2a7206?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-5",
+    "name": "บะหมี่เกี๊ยวหมูแดง",
+    "description": "บะหมี่ไข่ทำเอง แผ่นเกี๊ยวบางนุ่มไส้แน่น หมูแดงหอมเตาถ่าน",
+    "price": 65,
+    "isRecommended": true,
+    "image": "https://images.unsplash.com/photo-1585032226651-759b368d7246?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-6",
+    "name": "ก๋วยจั๊บน้ำข้น",
+    "description": "เส้นก๋วยจั๊บเหนียวนุ่มในน้ำซุปพะโล้รสเข้มข้น หอมเครื่องเทศพริกไทย",
+    "price": 55,
+    "isRecommended": false,
+    "image": "https://images.unsplash.com/photo-1547928576-a4a33237ce35?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-7",
+    "name": "ขนมจีนน้ำยาปลา",
+    "description": "ขนมจีนเส้นสด ราดความเข้มข้นของน้ำยาปลาผสมกระชาย หอมกรุ่นกะทิสด",
+    "price": 45,
+    "isRecommended": false,
+    "image": "https://images.unsplash.com/photo-1634459419130-9b6264f33fd9?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "item-8",
+    "name": "มาม่าต้มยำทะเลหม้อไฟ",
+    "description": "พรีเมียมจัดเต็ม! เส้นมาม่าในซุปต้มยำมันกุ้ง พร้อมกุ้งแม่น้ำ ปลาหมึก และไข่เยิ้ม",
+    "price": 120,
+    "isRecommended": true,
+    "image": "https://images.unsplash.com/photo-1569058242252-62324e68884c?auto=format&fit=crop&q=80&w=800"
+  }
+]
