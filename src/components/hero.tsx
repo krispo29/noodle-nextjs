@@ -36,7 +36,7 @@ export function Hero() {
         >
           <motion.div variants={fadeInUp} transition={{ duration: 0.5 }}>
             <Badge className="mb-6 py-1 px-4 text-sm bg-primary/20 text-primary hover:bg-primary/20 border-none">
-              สูตรลับความอร่อยกว่า 20 ปี
+              {process.env.NEXT_PUBLIC_RESTAURANT_NAME || "ร้านอาหารไทย"}
             </Badge>
           </motion.div>
           <motion.h1 
@@ -44,15 +44,15 @@ export function Hero() {
             transition={{ duration: 0.5 }}
             className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight"
           >
-            ก๋วยเตี๋ยวรสเด็ด <br className="hidden md:block"/>
-            <span className="text-primary">สูตรดั้งเดิมคุณแม่</span>
+            อาหารไทยแท้ <br className="hidden md:block"/>
+            <span className="text-primary">รสชาติคุณภาพ</span>
           </motion.h1>
           <motion.p 
             variants={fadeInUp} 
             transition={{ duration: 0.5 }}
             className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl px-4 mx-auto"
           >
-            น้ำซุปเข้มข้น หอมกรุ่นต้มกระดูกหมู เครื่องแน่น วัตถุดิบสดใหม่ทุกวัน สัมผัสรสชาติแห่งความใส่ใจในทุกชาม
+            วัตถุดิบสดใหม่ทุกวัน สูตรลับความอร่อย บริการด้วยใจ สัมผัสรสชาติแห่งความใส่ใจในทุกจาน
           </motion.p>
           <motion.div 
             variants={fadeInUp} 

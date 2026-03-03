@@ -45,16 +45,19 @@ export interface Order {
   driverName?: string | null;
   driverPhone?: string | null;
   notes?: string | null;
-  estimatedDeliveryTime?: string;
+  estimatedDeliveryTime?: Date | string | null;
 }
 
 // Order item type
 export interface OrderItem {
   id?: string;
+  orderId?: string;
+  menuItemId?: string | null;
   name: string;
   quantity: number;
   price: number | string;
-  notes?: string;
+  options?: string | null;
+  notes?: string | null;
 }
 
 // Category type

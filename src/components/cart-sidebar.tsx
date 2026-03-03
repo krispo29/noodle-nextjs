@@ -35,8 +35,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import generatePayload from "promptpay-qr"
 import { QRCodeSVG } from "qrcode.react"
 
-// Replace with the shop's actual PromptPay number (Phone number or ID Card)
-const SHOP_PROMPTPAY_NUMBER = "0812345678" // Using a dummy number for now
+// Use environment variable for PromptPay number
+const SHOP_PROMPTPAY_NUMBER = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER || "0812345678"
 
 const checkoutSchema = z.object({
   name: z.string().min(2, "กรุณากรอกชื่อ (อย่างน้อย 2 ตัวอักษร)"),
@@ -137,16 +137,31 @@ const checkoutSchema = z.object({
                     <div className="flex-1 space-y-1">
                       <div className="flex justify-between">
                         <h4 className="font-semibold text-sm leading-none">
-                          {item.name} <span className="text-primary">({item.options?.noodleType})</span>
+                          {item.name}
+                          {item.options?.noodleType && (
+                            <span className="text-primary"> ({item.options.noodleType})</span>
+                          )}
+                          {/* Display new format selected options */}
+                          {item.options?.selectedOptions && !item.options?.noodleType && (
+                            <span className="text-primary">
+                              {Object.entries(item.options.selectedOptions).map(([key, value]) => {
+                                if (Array.isArray(value) && value.length > 0) {
+                                  return ` (${key}: ${value.join(", ")})`;
+                                }
+                                return value ? ` (${key}: ${value})` : "";
+                              })}
+                            </span>
+                          )}
                         </h4>
                         <span className="font-bold text-sm">฿{item.price * item.quantity}</span>
                       </div>
                       
-                      {(item.options?.toppings?.length || item.options?.specialRequest) ? (
+                      {/* Toppings - support both legacy and new formats */}
+                      {((item.options?.toppings?.length || 0) > 0 || (item.options?.selectedToppings?.length || 0) > 0 || item.options?.specialRequest) ? (
                         <div className="text-xs text-muted-foreground mt-1">
-                          {item.options?.toppings && item.options.toppings.length > 0 && (
-                            <p>+ {item.options.toppings.join(", ")}</p>
-                          )}
+                          {(item.options?.toppings || item.options?.selectedToppings || []).map((topping: string) => (
+                            <p key={topping}>+ {topping}</p>
+                          ))}
                           {item.options?.specialRequest && (
                             <p className="italic">&quot;{item.options.specialRequest}&quot;</p>
                           )}

@@ -1,10 +1,13 @@
 import { create } from 'zustand'
 
 export interface OrderOptions {
+  selectedOptions?: Record<string, string | string[]>;
+  selectedToppings?: string[];
+  specialRequest?: string;
+  // Legacy support for old noodle shop
   noodleType?: string;
   soupType?: string;
   toppings?: string[];
-  specialRequest?: string;
 }
 
 export interface CartItem {
@@ -16,7 +19,7 @@ export interface CartItem {
   options?: OrderOptions;
 }
 
-// Topping prices - should match the prices in menu-item-modal.tsx
+// Topping prices - for legacy support
 const TOPPING_PRICES: Record<string, number> = {
   'พิเศษ': 10,
   'ไข่ยางมะตูม': 10,
@@ -37,7 +40,7 @@ interface CartStore {
   getCartTotal: () => number;
 }
 
-// Helper to calculate topping total
+// Helper to calculate topping total (for legacy support)
 const calculateToppingTotal = (toppings?: string[]): number => {
   if (!toppings || toppings.length === 0) return 0;
   return toppings.reduce((total, topping) => {
@@ -54,7 +57,7 @@ export const useCartStore = create<CartStore>((set, get) => ({
   items: [],
   addItem: (newItem) => {
     set((state) => {
-      // Calculate total price including toppings
+      // Calculate total price including toppings (for legacy support)
       const toppingTotal = calculateToppingTotal(newItem.options?.toppings);
       const totalPrice = newItem.price + toppingTotal;
       

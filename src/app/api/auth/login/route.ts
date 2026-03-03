@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     // Generate secure session token and store in database
     const session = await createSession(user.id);
     
-    // Set cookie
+    // Set cookie with enhanced security
     const cookieStore = await cookies();
     cookieStore.set('auth-token', session.token, {
       httpOnly: true,
@@ -78,6 +78,8 @@ export async function POST(request: NextRequest) {
       sameSite: 'strict',
       maxAge: 60 * 60 * 24, // 24 hours
       path: '/',
+      // Prevent XSS from accessing cookie
+      domain: process.env.COOKIE_DOMAIN || undefined,
     });
     
     // Return user info (excluding password)

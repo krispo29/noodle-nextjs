@@ -78,7 +78,7 @@ export async function PUT(
     const [updated] = await db.update(orders)
       .set({
         ...validation.data,
-        estimatedDeliveryTime: validation.data!.estimatedDeliveryTime 
+        estimatedReadyTime: validation.data!.estimatedDeliveryTime 
           ? new Date(validation.data!.estimatedDeliveryTime) 
           : undefined,
         updatedAt: new Date(),

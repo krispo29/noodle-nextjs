@@ -17,6 +17,7 @@ export const sessions = pgTable('sessions', {
     userIdIdx: index('idx_sessions_user_id').on(table.userId),
     tokenIdx: index('idx_sessions_token').on(table.token),
     expiresAtIdx: index('idx_sessions_expires_at').on(table.expiresAt),
+    userExpiresIdx: index('idx_sessions_user_expires').on(table.userId, table.expiresAt),
   };
 });
 

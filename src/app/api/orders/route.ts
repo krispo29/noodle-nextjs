@@ -37,9 +37,12 @@ export async function GET(request: NextRequest) {
     let query = db.select({
       id: orders.id,
       orderNumber: orders.orderNumber,
+      orderType: orders.orderType,
       platform: orders.platform,
       customerName: orders.customerName,
       customerPhone: orders.customerPhone,
+      customerNote: orders.customerNote,
+      tableNumber: orders.tableNumber,
       deliveryAddress: orders.deliveryAddress,
       subtotal: orders.subtotal,
       deliveryFee: orders.deliveryFee,
@@ -47,10 +50,14 @@ export async function GET(request: NextRequest) {
       discount: orders.discount,
       total: orders.total,
       status: orders.status,
+      paymentStatus: orders.paymentStatus,
       driverName: orders.driverName,
       driverPhone: orders.driverPhone,
-      notes: orders.notes,
-      estimatedDeliveryTime: orders.estimatedDeliveryTime,
+      estimatedReadyTime: orders.estimatedReadyTime,
+      readyAt: orders.readyAt,
+      completedAt: orders.completedAt,
+      cancelledAt: orders.cancelledAt,
+      cancelReason: orders.cancelReason,
       createdAt: orders.createdAt,
       updatedAt: orders.updatedAt,
     })
@@ -120,9 +127,9 @@ export async function POST(request: NextRequest) {
     }
     
     const { 
-      orderNumber, platform, userId, customerName, customerPhone, 
-      deliveryAddress, subtotal, deliveryFee, platformFee, discount, total,
-      status, driverName, driverPhone, notes, estimatedDeliveryTime, items
+      orderNumber, orderType, platform, userId, customerName, customerPhone, customerNote,
+      tableNumber, deliveryAddress, subtotal, deliveryFee, platformFee, discount, total,
+      status, paymentStatus, driverName, driverPhone, estimatedDeliveryTime, items
     } = validation.data!;
     
     // Check for duplicate order number
@@ -138,10 +145,13 @@ export async function POST(request: NextRequest) {
     // Insert order with items in a transaction
     const [newOrder] = await db.insert(orders).values({
       orderNumber,
+      orderType: orderType ?? 'takeaway',
       platform: platform ?? 'walkin',
       userId,
       customerName,
       customerPhone,
+      customerNote,
+      tableNumber,
       deliveryAddress,
       subtotal,
       deliveryFee: deliveryFee ?? '0',
@@ -149,22 +159,24 @@ export async function POST(request: NextRequest) {
       discount: discount ?? '0',
       total,
       status: status ?? 'pending',
+      paymentStatus: paymentStatus ?? 'pending',
       driverName,
       driverPhone,
-      notes,
-      estimatedDeliveryTime: estimatedDeliveryTime ? new Date(estimatedDeliveryTime) : undefined,
+      estimatedReadyTime: estimatedDeliveryTime ? new Date(estimatedDeliveryTime) : undefined,
     }).returning();
     
     // Insert order items
     if (items && items.length > 0) {
-      const orderItemsData = items.map((item: any) => ({
+      const orderItemsData = items.map((item) => ({
         orderId: newOrder.id,
         menuItemId: item.menuItemId,
-        name: item.name,
+        menuItemName: item.name,
         quantity: item.quantity,
-        price: item.price,
-        options: item.options,
-        notes: item.notes,
+        unitPrice: String(item.price),
+        totalPrice: String(Number(item.price) * item.quantity),
+        selectedOptions: item.options ? JSON.parse(item.options) : null,
+        selectedToppings: null,
+        specialRequest: item.notes || null,
       }));
       
       await db.insert(orderItems).values(orderItemsData);

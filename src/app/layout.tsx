@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ร้านเปียต้มเลือดหมู",
-  description: "ก๋วยเตี๋ยวรสเด็ดสูตรคุณแม่ พร้อมเสิร์ฟความอร่อย ถ่ายทอดความตั้งใจ ส่งตรงจากระเเวงบ้านคุณ",
+  title: "ร้านอาหารไทย - Thai Restaurant",
+  description: "อาหารไทยแท้ รสชาติคุณภาพ วัตถุดิบสดใหม่ทุกวัน บริการด้วยใจ",
 };
 
 export default function RootLayout({

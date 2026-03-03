@@ -62,7 +62,10 @@ export async function POST(request: NextRequest) {
       return validationErrorResponse(validation.error!.flatten().fieldErrors);
     }
     
-    const { name, description, sortOrder, isActive } = validation.data!;
+    const { name, description, sortOrder, isActive, groupId } = validation.data!;
+    
+    // Generate slug from name
+    const slug = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
     
     // Check for duplicate name
     const existing = await db.select()
@@ -77,6 +80,8 @@ export async function POST(request: NextRequest) {
     // Insert new category
     const [newCategory] = await db.insert(categories).values({
       name,
+      slug,
+      groupId,
       description,
       sortOrder: sortOrder ?? 0,
       isActive: isActive ?? true,

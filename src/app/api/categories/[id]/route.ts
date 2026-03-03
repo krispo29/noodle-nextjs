@@ -16,6 +16,7 @@ import {
   noContentResponse 
 } from '@/lib/api-response';
 import { updateCategorySchema, validateRequest } from '@/lib/validations';
+import { getAuthUser, authUnauthorized } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 // GET /api/categories/[id] - Get a category by ID
@@ -24,6 +25,12 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to view category');
+    }
+    
     const { id } = await params;
     
     const [category] = await db.select()
@@ -48,6 +55,12 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to update category');
+    }
+    
     const { id } = await params;
     const body = await request.json();
     
@@ -89,6 +102,12 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to delete category');
+    }
+    
     const { id } = await params;
     
     // Check if category exists

@@ -36,10 +36,12 @@ export async function GET(request: NextRequest) {
       categoryId: menuItems.categoryId,
       name: menuItems.name,
       description: menuItems.description,
-      price: menuItems.price,
+      basePrice: menuItems.basePrice,
       imageUrl: menuItems.imageUrl,
       isRecommended: menuItems.isRecommended,
+      isSpicy: menuItems.isSpicy,
       isAvailable: menuItems.isAvailable,
+      preparationTime: menuItems.preparationTime,
       sortOrder: menuItems.sortOrder,
       createdAt: menuItems.createdAt,
       updatedAt: menuItems.updatedAt,
@@ -94,7 +96,7 @@ export async function POST(request: NextRequest) {
       return validationErrorResponse(validation.error!.flatten().fieldErrors);
     }
     
-    const { categoryId, name, description, price, imageUrl, isRecommended, isAvailable, sortOrder } = validation.data!;
+    const { categoryId, name, description, basePrice, imageUrl, isRecommended, isSpicy, isAvailable, preparationTime, sortOrder } = validation.data!;
     
     // Check if category exists
     const [category] = await db.select()
@@ -111,10 +113,12 @@ export async function POST(request: NextRequest) {
       categoryId,
       name,
       description,
-      price,
+      basePrice,
       imageUrl,
       isRecommended: isRecommended ?? false,
+      isSpicy: isSpicy ?? false,
       isAvailable: isAvailable ?? true,
+      preparationTime: preparationTime ?? 15,
       sortOrder: sortOrder ?? 0,
     }).returning();
     

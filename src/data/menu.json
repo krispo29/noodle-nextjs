@@ -1,0 +1,34 @@
+[
+  {
+    "id": "1",
+    "name": "ต้มเลือดหมูพิเศษ",
+    "description": "ต้มเลือดหมูเครื่องแน่น ผักกาดหอมสดใหม่ น้ำซุปกลมกล่อม",
+    "price": 60,
+    "isRecommended": true,
+    "image": "https://images.unsplash.com/photo-1547928576-a4a33237ecd3?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "2",
+    "name": "ก๋วยจั๊บน้ำใส",
+    "description": "ก๋วยจั๊บเครื่องครบ หมูกรอบกรุบกรับ น้ำซุปพริกไทยถึงใจ",
+    "price": 50,
+    "isRecommended": true,
+    "image": "https://images.unsplash.com/photo-1623341214825-9f4f963727db?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "3",
+    "name": "เกาเหลาเลือดหมู",
+    "description": "เกาเหลาเครื่องแน่น ทานคู่กับข้าวสวยร้อนๆ ฟินสุดๆ",
+    "price": 50,
+    "isRecommended": false,
+    "image": "https://images.unsplash.com/photo-1563379926898-05f4575a45d8?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "4",
+    "name": "ข้าวสวย",
+    "description": "ข้าวหอมมะลิหอมนุ่ม หุงสุกใหม่ทุกวัน",
+    "price": 10,
+    "isRecommended": false,
+    "image": "https://images.unsplash.com/photo-1516684732162-798a0062be99?auto=format&fit=crop&q=80&w=800"
+  }
+]
