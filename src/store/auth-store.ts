@@ -1,12 +1,13 @@
 /**
  * Authentication Store using Zustand
  * ระบบจัดการการล็อกอินสำหรับ Admin
+ * ใช้ API สำหรับ authentication
  */
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { adminCredentials } from '@/data/lineman-orders';
 
 interface User {
+  id: string;
   username: string;
   name: string;
   role: string;
@@ -15,7 +16,8 @@ interface User {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
-  login: (username: string, password: string) => boolean;
+  token: string | null;
+  login: (username: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
@@ -24,30 +26,50 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       isAuthenticated: false,
       user: null,
-      login: (username: string, password: string) => {
-        // ตรวจสอบ credentials
-        if (
-          username === adminCredentials.username && 
-          password === adminCredentials.password
-        ) {
-          set({
-            isAuthenticated: true,
-            user: {
-              username: adminCredentials.username,
-              name: adminCredentials.name,
-              role: adminCredentials.role,
+      token: null,
+      login: async (username: string, password: string) => {
+        try {
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
             },
+            body: JSON.stringify({ username, password }),
           });
-          return true;
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.data) {
+              set({
+                isAuthenticated: true,
+                user: data.data.user,
+                token: data.data.token,
+              });
+              return true;
+            }
+          }
+          return false;
+        } catch (error) {
+          console.error('Login error:', error);
+          return false;
         }
-        return false;
       },
       logout: () => {
-        set({ isAuthenticated: false, user: null });
+        // Call logout API
+        fetch('/api/auth/login', {
+          method: 'DELETE',
+        }).catch(console.error);
+        
+        set({ isAuthenticated: false, user: null, token: null });
       },
     }),
     {
-      name: 'admin-auth-storage', // name of the item in the storage
+      name: 'admin-auth-storage',
+      partialize: (state) => ({ 
+        isAuthenticated: state.isAuthenticated, 
+        user: state.user,
+        token: state.token 
+      }),
     }
   )
 );

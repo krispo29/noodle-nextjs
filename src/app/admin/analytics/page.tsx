@@ -29,7 +29,7 @@ import {
   mockDailyStats, 
   mockMenuStats, 
   mockHourlyStats 
-} from '@/data/lineman-orders';
+} from '@/lib/mock-data';
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');

@@ -13,7 +13,8 @@ import {
   Package,
   Truck,
   Eye,
-  RefreshCw
+  RefreshCw,
+  type LucideIcon
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -37,14 +38,10 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
-import { 
-  mockOrders, 
-  Order,
-  OrderStatus
-} from '@/data/lineman-orders';
+import { Order, OrderStatus, OrderItem } from '@/lib/types';
 
 // Status config
-const statusConfig: Record<string, { color: string; bg: string; label: string; icon: any }> = {
+const statusConfig: Record<string, { color: string; bg: string; label: string; icon: LucideIcon }> = {
   pending: { color: 'text-yellow-600', bg: 'bg-yellow-100', label: 'รอดำเนินการ', icon: Clock },
   accepted: { color: 'text-blue-600', bg: 'bg-blue-100', label: 'รับออร์เดอร์', icon: CheckCircle },
   preparing: { color: 'text-orange-600', bg: 'bg-orange-100', label: 'กำลังเตรียม', icon: ChefHat },
@@ -55,7 +52,7 @@ const statusConfig: Record<string, { color: string; bg: string; label: string; i
 };
 
 export default function OrdersPage() {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -86,15 +83,17 @@ export default function OrdersPage() {
     return flow[currentStatus] || null;
   };
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '0.00';
     return new Intl.NumberFormat('th-TH', {
       style: 'currency',
       currency: 'THB',
       minimumFractionDigits: 0,
-    }).format(value);
+    }).format(num);
   };
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | Date) => {
     return new Date(dateStr).toLocaleTimeString('th-TH', {
       hour: '2-digit',
       minute: '2-digit'
@@ -262,10 +261,10 @@ export default function OrdersPage() {
                               <div>
                                 <label className="text-sm font-medium text-muted-foreground mb-2 block">รายการอาหาร</label>
                                 <div className="space-y-2">
-                                  {selectedOrder.items.map((item, idx) => (
+                                  {selectedOrder.items?.map((item: OrderItem, idx: number) => (
                                     <div key={idx} className="flex justify-between text-sm">
                                       <span>{item.name} x{item.quantity}</span>
-                                      <span className="font-medium">{formatCurrency(item.price * item.quantity)}</span>
+                                      <span className="font-medium">{formatCurrency(Number(item.price) * item.quantity)}</span>
                                     </div>
                                   ))}
                                 </div>

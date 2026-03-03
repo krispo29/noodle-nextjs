@@ -29,7 +29,7 @@ import {
   DialogTrigger,
   DialogFooter
 } from '@/components/ui/dialog';
-import { mockMenuStats } from '@/data/lineman-orders';
+import { mockMenuStats } from '@/lib/mock-data';
 
 interface MenuItem {
   id: string;

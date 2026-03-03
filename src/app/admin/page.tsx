@@ -53,14 +53,16 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { 
-  mockOrders, 
-  mockDailyStats, 
-  mockMenuStats, 
-  mockHourlyStats,
   calculateOrderSummary,
   Order,
-  OrderStatus
-} from '@/data/lineman-orders';
+  OrderStatus,
+  OrderItem
+} from '@/lib/types';
+import {
+  mockDailyStats,
+  mockMenuStats,
+  mockHourlyStats
+} from '@/lib/mock-data';
 
 // Status colors and labels
 const statusConfig: Record<string, { color: string; bg: string; label: string }> = {
@@ -76,7 +78,7 @@ const statusConfig: Record<string, { color: string; bg: string; label: string }>
 const COLORS = ['#f97316', '#fb923c', '#fdba74', '#fed7aa', '#ffedd5', '#fff7ed'];
 
 export default function AdminDashboard() {
-  const [orders, setOrders] = useState<Order[]>(mockOrders);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [showNewOrderNotification, setShowNewOrderNotification] = useState(true);
   const [timeRange, setTimeRange] = useState<'daily' | 'weekly' | 'monthly'>('daily');
@@ -84,13 +86,15 @@ export default function AdminDashboard() {
   const summary = calculateOrderSummary(orders);
   const pendingOrders = orders.filter(o => ['pending', 'accepted', 'preparing'].includes(o.status));
 
-  const formatCurrency = (value: number) => {
+  const formatCurrency = (value: number | string) => {
+    const num = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(num)) return '0.00';
     return new Intl.NumberFormat('th-TH', {
       style: 'currency',
       currency: 'THB',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
-    }).format(value);
+    }).format(num);
   };
 
   const formatDate = (dateStr: string) => {
@@ -101,7 +105,7 @@ export default function AdminDashboard() {
     });
   };
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | Date) => {
     return new Date(dateStr).toLocaleTimeString('th-TH', {
       hour: '2-digit',
       minute: '2-digit'
@@ -434,10 +438,10 @@ export default function AdminDashboard() {
                   </TableCell>
                   <TableCell>
                     <div className="text-sm">
-                      {order.items.slice(0, 2).map((item, idx) => (
+                      {order.items?.slice(0, 2).map((item, idx) => (
                         <p key={idx}>{item.name} x{item.quantity}</p>
                       ))}
-                      {order.items.length > 2 && (
+                      {order.items && order.items.length > 2 && (
                         <p className="text-muted-foreground">+{order.items.length - 2} รายการ</p>
                       )}
                     </div>
@@ -502,10 +506,10 @@ export default function AdminDashboard() {
                               <div>
                                 <label className="text-sm font-medium text-muted-foreground mb-2 block">รายการอาหาร</label>
                                 <div className="space-y-2">
-                                  {selectedOrder.items.map((item, idx) => (
+                                  {selectedOrder.items?.map((item: OrderItem, idx: number) => (
                                     <div key={idx} className="flex justify-between text-sm">
                                       <span>{item.name} x{item.quantity}</span>
-                                      <span className="font-medium">{formatCurrency(item.price * item.quantity)}</span>
+                                      <span className="font-medium">{formatCurrency(Number(item.price) * item.quantity)}</span>
                                     </div>
                                   ))}
                                 </div>
