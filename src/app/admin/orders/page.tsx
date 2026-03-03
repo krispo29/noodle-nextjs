@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Search, 
   Filter, 
@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/dialog';
 import { Separator } from '@/components/ui/separator';
 import { Order, OrderStatus, OrderItem } from '@/lib/types';
+import { getOrders, updateOrder } from '@/lib/api-client';
 
 // Status config
 const statusConfig: Record<string, { color: string; bg: string; label: string; icon: LucideIcon }> = {
@@ -56,6 +57,33 @@ export default function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch orders from API
+  const fetchOrders = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await getOrders({ limit: 100 });
+      // Cast status to OrderStatus to fix type compatibility
+      const ordersWithTypedStatus = data.orders.map((order) => ({
+        ...order,
+        status: order.status as OrderStatus,
+      }));
+      setOrders(ordersWithTypedStatus);
+    } catch (err) {
+      console.error('Failed to fetch orders:', err);
+      setError('Failed to load orders');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch orders on mount
+  useEffect(() => {
+    fetchOrders();
+  }, []);
 
   // Filter orders
   const filteredOrders = orders.filter(order => {
@@ -65,11 +93,16 @@ export default function OrdersPage() {
     return matchesSearch && matchesStatus;
   });
 
-  // Update order status
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
-    setOrders(prev => prev.map(order => 
-      order.id === orderId ? { ...order, status: newStatus } : order
-    ));
+  // Update order status with API call
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
+    try {
+      await updateOrder(orderId, { status: newStatus });
+      setOrders(prev => prev.map(order => 
+        order.id === orderId ? { ...order, status: newStatus } : order
+      ));
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+    }
   };
 
   const getNextStatus = (currentStatus: string): OrderStatus | null => {
@@ -114,11 +147,24 @@ export default function OrdersPage() {
           <h2 className="text-2xl font-bold">จัดการคำสั่งซื้อ</h2>
           <p className="text-muted-foreground">ติดตามและจัดการคำสั่งซื้อทั้งหมด</p>
         </div>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={fetchOrders}>
           <RefreshCw className="w-4 h-4 mr-2" />
           รีเฟรช
         </Button>
       </div>
+
+      {/* Loading and Error States */}
+      {isLoading && (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500" />
+        </div>
+      )}
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 p-4 rounded-lg">
+          {error}
+        </div>
+      )}
 
       {/* Status Summary */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">

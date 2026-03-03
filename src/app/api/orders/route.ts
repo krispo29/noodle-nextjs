@@ -14,11 +14,18 @@ import {
   validationErrorResponse 
 } from '@/lib/api-response';
 import { createOrderSchema, validateRequest } from '@/lib/validations';
+import { getAuthUser, authUnauthorized } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 // GET /api/orders - Get all orders
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to view orders');
+    }
+    
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const platform = searchParams.get('platform');
@@ -98,6 +105,12 @@ export async function GET(request: NextRequest) {
 // POST /api/orders - Create a new order
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to create orders');
+    }
+    
     const body = await request.json();
     
     // Validate request

@@ -14,11 +14,19 @@ import {
   validationErrorResponse 
 } from '@/lib/api-response';
 import { createUserSchema, validateRequest } from '@/lib/validations';
+import { hashPassword, validatePasswordStrength } from '@/lib/password';
+import { getAuthUser, authUnauthorized } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
-// GET /api/users - Get all users
+// GET /api/users - Get all users (admin only - requires auth)
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to view users');
+    }
+    
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('activeOnly') === 'true';
     
@@ -47,9 +55,15 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/users - Create a new user
+// POST /api/users - Create a new user (admin only - requires auth)
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const authUser = await getAuthUser();
+    if (!authUser) {
+      return authUnauthorized('Authentication required to create users');
+    }
+    
     const body = await request.json();
     
     // Validate request
@@ -59,6 +73,12 @@ export async function POST(request: NextRequest) {
     }
     
     const { username, password, name, role, isActive } = validation.data!;
+    
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      return badRequestResponse(passwordValidation.error!);
+    }
     
     // Check for duplicate username
     const [existing] = await db.select()
@@ -70,13 +90,13 @@ export async function POST(request: NextRequest) {
       return badRequestResponse('Username already exists');
     }
     
-    // Note: In production, hash the password with bcrypt!
-    // const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash the password using bcrypt
+    const hashedPassword = await hashPassword(password);
     
-    // Insert new user
+    // Insert new user with hashed password
     const [newUser] = await db.insert(users).values({
       username,
-      passwordHash: password, // In production: hashedPassword
+      passwordHash: hashedPassword,
       name,
       role: role ?? 'admin',
       isActive: isActive ?? true,

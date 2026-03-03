@@ -14,11 +14,18 @@ import {
   validationErrorResponse 
 } from '@/lib/api-response';
 import { createMenuItemSchema, validateRequest } from '@/lib/validations';
+import { getAuthUser, authUnauthorized } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 // GET /api/menu - Get all menu items
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to view menu');
+    }
+    
     const { searchParams } = new URL(request.url);
     const categoryId = searchParams.get('categoryId');
     const availableOnly = searchParams.get('availableOnly') === 'true';
@@ -73,6 +80,12 @@ export async function GET(request: NextRequest) {
 // POST /api/menu - Create a menu item
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to create menu items');
+    }
+    
     const body = await request.json();
     
     // Validate request

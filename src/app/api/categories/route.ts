@@ -15,11 +15,18 @@ import {
   validationErrorResponse 
 } from '@/lib/api-response';
 import { createCategorySchema, updateCategorySchema, validateRequest } from '@/lib/validations';
+import { getAuthUser, authUnauthorized } from '@/lib/auth';
 import { NextRequest } from 'next/server';
 
 // GET /api/categories - Get all categories
 export async function GET(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to view categories');
+    }
+    
     const { searchParams } = new URL(request.url);
     const activeOnly = searchParams.get('activeOnly') === 'true';
     
@@ -41,6 +48,12 @@ export async function GET(request: NextRequest) {
 // POST /api/categories - Create a category
 export async function POST(request: NextRequest) {
   try {
+    // Require authentication
+    const user = await getAuthUser();
+    if (!user) {
+      return authUnauthorized('Authentication required to create categories');
+    }
+    
     const body = await request.json();
     
     // Validate request

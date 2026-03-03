@@ -15,12 +15,26 @@ import {
   validationErrorResponse 
 } from '@/lib/api-response';
 import { loginSchema, validateRequest } from '@/lib/validations';
+import { verifyPassword } from '@/lib/password';
+import { createSession, deleteSession, validateSession } from '@/lib/session';
+import { rateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { NextRequest } from 'next/server';
 import { cookies } from 'next/headers';
 
 // POST /api/auth/login - Login
 export async function POST(request: NextRequest) {
   try {
+    // Get client IP for rate limiting
+    const ip = request.headers.get('x-forwarded-for') || 
+               request.headers.get('x-real-ip') || 
+               'unknown';
+    
+    // Apply rate limiting - 5 login attempts per minute
+    const rateLimitResult = rateLimit(ip, RATE_LIMITS.LOGIN);
+    if (!rateLimitResult.success) {
+      return badRequestResponse('Too many login attempts. Please try again later.');
+    }
+    
     const body = await request.json();
     
     // Validate request
@@ -37,9 +51,14 @@ export async function POST(request: NextRequest) {
       .where(eq(users.username, username))
       .limit(1);
     
-    // Note: In production, use bcrypt to compare hashed passwords
-    // For now, simple comparison (should be replaced)
-    if (!user || user.passwordHash !== password) {
+    // Check if user exists
+    if (!user) {
+      return unauthorizedResponse('Invalid username or password');
+    }
+    
+    // Verify password using bcrypt
+    const isValidPassword = await verifyPassword(password, user.passwordHash);
+    if (!isValidPassword) {
       return unauthorizedResponse('Invalid username or password');
     }
     
@@ -48,15 +67,15 @@ export async function POST(request: NextRequest) {
       return unauthorizedResponse('Account is disabled');
     }
     
-    // Create session token (in production, use proper JWT or session)
-    const sessionToken = Buffer.from(`${user.id}:${Date.now()}`).toString('base64');
+    // Generate secure session token and store in database
+    const session = await createSession(user.id);
     
     // Set cookie
     const cookieStore = await cookies();
-    cookieStore.set('auth-token', sessionToken, {
+    cookieStore.set('auth-token', session.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      sameSite: 'strict',
       maxAge: 60 * 60 * 24, // 24 hours
       path: '/',
     });
@@ -69,7 +88,7 @@ export async function POST(request: NextRequest) {
         name: user.name,
         role: user.role,
       },
-      token: sessionToken,
+      token: session.token,
     }, 'Login successful');
   } catch (error) {
     console.error('Error during login:', error);
@@ -81,6 +100,13 @@ export async function POST(request: NextRequest) {
 export async function DELETE() {
   try {
     const cookieStore = await cookies();
+    const token = cookieStore.get('auth-token')?.value;
+    
+    // Delete session from database if token exists
+    if (token) {
+      await deleteSession(token);
+    }
+    
     cookieStore.delete('auth-token');
     
     return successResponse(null, 'Logout successful');

@@ -2,6 +2,7 @@
  * Validation Schemas using Zod
  */
 import { z } from 'zod';
+import { sanitizeHtml, sanitizeNotes, sanitizePhone, sanitizeEmail } from './sanitize';
 
 // Common validation patterns
 export const uuidSchema = z.string().uuid('Invalid UUID format');
@@ -79,7 +80,7 @@ export const createOrderSchema = z.object({
   platform: platformEnum.default('walkin'),
   userId: uuidSchema.optional(),
   customerName: stringSchema(1, 255),
-  customerPhone: phoneSchema,
+  customerPhone: phoneSchema.transform(val => sanitizePhone(val || '')),
   deliveryAddress: optionalStringSchema(0, 1000).optional(),
   subtotal: decimalSchema,
   deliveryFee: decimalSchema.default('0'),
@@ -88,8 +89,8 @@ export const createOrderSchema = z.object({
   total: decimalSchema,
   status: orderStatusEnum.default('pending'),
   driverName: optionalStringSchema(0, 255).optional(),
-  driverPhone: phoneSchema.optional(),
-  notes: optionalStringSchema(0, 1000).optional(),
+  driverPhone: phoneSchema.transform(val => sanitizePhone(val || '')),
+  notes: z.string().transform(val => sanitizeNotes(val)),
   estimatedDeliveryTime: z.string().datetime().optional(),
   items: z.array(orderItemSchema).min(1),
 });

@@ -115,10 +115,6 @@ export default function LoginPage() {
             >
               {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
             </Button>
-
-            <div className="text-center text-sm text-muted-foreground pt-2">
-              <p>Default: admin / admin123</p>
-            </div>
           </form>
         </CardContent>
       </Card>

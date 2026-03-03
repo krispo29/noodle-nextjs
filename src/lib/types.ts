@@ -34,17 +34,17 @@ export interface Order {
   createdAt: Date | string;
   status: OrderStatus;
   customerName: string;
-  customerPhone?: string;
-  deliveryAddress?: string;
+  customerPhone?: string | null;
+  deliveryAddress?: string | null;
   items?: OrderItem[];
   subtotal: number | string;
   deliveryFee: number | string;
   platformFee: number | string;
   discount: number | string;
   total: number | string;
-  driverName?: string;
-  driverPhone?: string;
-  notes?: string;
+  driverName?: string | null;
+  driverPhone?: string | null;
+  notes?: string | null;
   estimatedDeliveryTime?: string;
 }
 
