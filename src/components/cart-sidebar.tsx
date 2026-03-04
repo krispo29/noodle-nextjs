@@ -13,7 +13,6 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
@@ -79,39 +78,41 @@ const checkoutSchema = z.object({
   }
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
+    <>
+      <motion.div
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="fixed bottom-6 right-6 z-50"
+      >
+        <Button 
+          size="lg" 
+          className="h-16 px-6 rounded-full shadow-2xl transition-transform hover:scale-105"
+          onClick={() => setIsOpen(true)}
         >
-          <Button 
-            size="lg" 
-            className="fixed bottom-6 right-6 h-16 px-6 rounded-full shadow-2xl z-50 transition-transform hover:scale-105"
-          >
-            <div className="relative">
-              <ShoppingCart className="h-6 w-6 mr-3" />
-              <AnimatePresence>
-                {itemCount > 0 && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    exit={{ scale: 0 }}
-                  >
-                    <Badge className="absolute -top-3 -right-5 px-2 py-0.5 bg-destructive text-white border-none rounded-full min-w-5 justify-center">
-                      {itemCount}
-                    </Badge>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-            <div className="flex flex-col items-start ml-2 text-left">
-              <span className="text-xs font-normal opacity-90">ตะกร้าของคุณ</span>
-              <span className="text-sm font-bold">฿{totalPrice}</span>
-            </div>
-          </Button>
-        </motion.div>
-      </SheetTrigger>
+          <div className="relative">
+            <ShoppingCart className="h-6 w-6 mr-3" />
+            <AnimatePresence>
+              {itemCount > 0 && (
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                >
+                  <Badge className="absolute -top-3 -right-5 px-2 py-0.5 bg-destructive text-white border-none rounded-full min-w-5 justify-center">
+                    {itemCount}
+                  </Badge>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+          <div className="flex flex-col items-start ml-2 text-left">
+            <span className="text-xs font-normal opacity-90">ตะกร้าของคุณ</span>
+            <span className="text-sm font-bold">฿{totalPrice}</span>
+          </div>
+        </Button>
+      </motion.div>
+
+      <Sheet open={isOpen} onOpenChange={setIsOpen}>
       
       <SheetContent className="w-full sm:max-w-md flex flex-col">
         <SheetHeader className="pb-4">
@@ -326,5 +327,6 @@ const checkoutSchema = z.object({
         )}
       </SheetContent>
     </Sheet>
+    </>
   )
 }
