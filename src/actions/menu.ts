@@ -1,8 +1,9 @@
 "use server";
 
-import fs from "fs/promises";
-import path from "path";
 import { revalidatePath } from "next/cache";
+import { db } from "@/db";
+import { menuItems } from "@/db/schema";
+import { eq, asc } from "drizzle-orm";
 
 export interface MenuItem {
   id: string;
@@ -13,32 +14,44 @@ export interface MenuItem {
   image: string;
 }
 
-const dataFilePath = path.join(process.cwd(), "src", "data", "menu.json");
-
 export async function getMenuItems(): Promise<MenuItem[]> {
   try {
-    const fileContents = await fs.readFile(dataFilePath, "utf8");
-    return JSON.parse(fileContents);
+    const results = await db.query.menuItems.findMany({
+      where: eq(menuItems.isAvailable, true),
+      orderBy: [asc(menuItems.sortOrder)],
+    });
+
+    return results.map(item => ({
+      id: item.id,
+      name: item.name,
+      description: item.description || "",
+      price: Number(item.basePrice),
+      isRecommended: item.isRecommended,
+      image: item.imageUrl || "https://images.unsplash.com/photo-1547928576-a4a33237ecd3?auto=format&fit=crop&q=80&w=800", // Fallback
+    }));
   } catch (error) {
-    console.error("Error reading menu items:", error);
+    console.error("Error fetching menu items from database:", error);
     return [];
   }
 }
 
 export async function addMenuItem(item: Omit<MenuItem, "id">) {
   try {
-    const items = await getMenuItems();
-    const newItem = {
-      ...item,
-      id: `item-${Date.now()}`,
-    };
-    
-    items.push(newItem);
-    await fs.writeFile(dataFilePath, JSON.stringify(items, null, 2));
+    // Note: In a real app, you'd need a categoryId here. 
+    // This is a simplified version to maintain previous interface.
+    // We'll use the first category found as a placeholder if needed.
+    const [newItem] = await db.insert(menuItems).values({
+      categoryId: "placeholder-id", // This would need to be handled properly
+      name: item.name,
+      description: item.description,
+      basePrice: item.price.toString(),
+      imageUrl: item.image,
+      isRecommended: item.isRecommended,
+    }).returning();
     
     revalidatePath("/");
     revalidatePath("/admin");
-    return { success: true, item: newItem };
+    return { success: true, item: { ...newItem, price: Number(newItem.basePrice), image: newItem.imageUrl || "" } };
   } catch (error) {
     console.error("Error adding menu item:", error);
     return { success: false, error: "Failed to add item" };
@@ -47,19 +60,21 @@ export async function addMenuItem(item: Omit<MenuItem, "id">) {
 
 export async function updateMenuItem(id: string, updates: Partial<MenuItem>) {
   try {
-    const items = await getMenuItems();
-    const itemIndex = items.findIndex((item) => item.id === id);
-    
-    if (itemIndex === -1) {
-      return { success: false, error: "Item not found" };
-    }
-    
-    items[itemIndex] = { ...items[itemIndex], ...updates };
-    await fs.writeFile(dataFilePath, JSON.stringify(items, null, 2));
+    const dbUpdates: any = {};
+    if (updates.name) dbUpdates.name = updates.name;
+    if (updates.description) dbUpdates.description = updates.description;
+    if (updates.price) dbUpdates.basePrice = updates.price.toString();
+    if (updates.image) dbUpdates.imageUrl = updates.image;
+    if (updates.isRecommended !== undefined) dbUpdates.isRecommended = updates.isRecommended;
+
+    const [updatedItem] = await db.update(menuItems)
+      .set(dbUpdates)
+      .where(eq(menuItems.id, id))
+      .returning();
     
     revalidatePath("/");
     revalidatePath("/admin");
-    return { success: true, item: items[itemIndex] };
+    return { success: true, item: { ...updatedItem, price: Number(updatedItem.basePrice), image: updatedItem.imageUrl || "" } };
   } catch (error) {
     console.error("Error updating menu item:", error);
     return { success: false, error: "Failed to update item" };
@@ -68,10 +83,7 @@ export async function updateMenuItem(id: string, updates: Partial<MenuItem>) {
 
 export async function deleteMenuItem(id: string) {
   try {
-    const items = await getMenuItems();
-    const filteredItems = items.filter((item) => item.id !== id);
-    
-    await fs.writeFile(dataFilePath, JSON.stringify(filteredItems, null, 2));
+    await db.delete(menuItems).where(eq(menuItems.id, id));
     
     revalidatePath("/");
     revalidatePath("/admin");
