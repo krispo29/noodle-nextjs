@@ -1,89 +1,103 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
-// Animation variants
-const fadeInUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
-};
-
-const staggerContainer = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.15
-    }
-  }
-};
+const categories = [
+  { name: "ทั้งหมด", id: "all" },
+  { name: "ต้มเลือดหมู", id: "soup" },
+  { name: "ก๋วยจั๊บ", id: "guay-jub" },
+  { name: "เกาเหลา", id: "kao-lao" },
+  { name: "เครื่องเคียง", id: "sides" },
+];
 
 export function Hero() {
   return (
-    <section className="relative overflow-hidden bg-background py-20 md:py-32">
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-background"></div>
+    <section className="relative h-screen overflow-hidden">
+      {/* Background: dark overlay on food image */}
+      <div className="absolute inset-0">
+        <Image 
+          src="https://images.unsplash.com/photo-1547928576-a4a33237ecd3?auto=format&fit=crop&q=100&w=1920" 
+          alt="Authentic Thai Noodles"
+          fill 
+          priority
+          className="object-cover scale-110" 
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-b 
+          from-background/30 via-background/60 to-background"
+        />
+        {/* Noise texture overlay for film grain effect - handled by .grain on body, but added here for specific hero layer if needed */}
+        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')]" />
       </div>
-      <div className="container mx-auto px-4 relative z-10 flex flex-col justify-center items-center text-center">
-        <motion.div
-          initial="hidden"
-          animate="visible"
-          variants={staggerContainer}
-          className="w-full"
+
+      {/* Floating category pills — horizontal scroll on mobile */}
+      <div
+        className="absolute bottom-16 md:bottom-32 left-0 right-0 
+        flex gap-3 px-6 overflow-x-auto no-scrollbar justify-start md:justify-center z-20"
+      >
+        {categories.map((cat, i) => (
+          <motion.button
+            key={cat.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.8 + i * 0.1, duration: 0.5 }}
+            className="shrink-0 px-6 py-2 rounded-full 
+            bg-white/10 backdrop-blur-md border border-white/20 
+            text-white text-sm hover:bg-primary hover:border-primary 
+            transition-all duration-300 font-sans"
+          >
+            {cat.name}
+          </motion.button>
+        ))}
+      </div>
+
+      {/* Main headline — editorial split layout */}
+      <div className="absolute inset-0 flex flex-col justify-center px-6 md:px-16 z-10">
+        <motion.p
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="font-accent text-primary tracking-[0.4em] 
+          text-sm uppercase mb-4"
         >
-          <motion.div variants={fadeInUp} transition={{ duration: 0.5 }}>
-            <Badge className="mb-6 py-1 px-4 text-sm bg-primary/20 text-primary hover:bg-primary/20 border-none">
-              {process.env.NEXT_PUBLIC_RESTAURANT_NAME || "ร้านอาหารไทย"}
-            </Badge>
-          </motion.div>
-          <motion.h1 
-            variants={fadeInUp} 
-            transition={{ duration: 0.5 }}
-            className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 leading-tight"
-          >
-            อาหารไทยแท้ <br className="hidden md:block"/>
-            <span className="text-primary">รสชาติคุณภาพ</span>
-          </motion.h1>
-          <motion.p 
-            variants={fadeInUp} 
-            transition={{ duration: 0.5 }}
-            className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl px-4 mx-auto"
-          >
-            วัตถุดิบสดใหม่ทุกวัน สูตรลับความอร่อย บริการด้วยใจ สัมผัสรสชาติแห่งความใส่ใจในทุกจาน
-          </motion.p>
-          <motion.div 
-            variants={fadeInUp} 
-            transition={{ duration: 0.5 }}
-            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto px-4 justify-center mx-auto"
-          >
-            <Button asChild size="lg" className="text-md w-full sm:w-auto px-8 h-12 shadow-lg hover:shadow-xl transition-all hover:scale-105 active:scale-95">
-              <Link href="#menu">
-                ดูเมนูเลย <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="text-md w-full sm:w-auto px-8 h-12 border-primary/20 hover:bg-primary/5 hover:scale-105 active:scale-95 transition-all">
-              <Link href="#contact">ติดต่อร้าน</Link>
-            </Button>
-          </motion.div>
+          {process.env.NEXT_PUBLIC_RESTAURANT_NAME || "ร้านเปียต้มเลือดหมู"} • Since 1995
+        </motion.p>
+        
+        <motion.h1
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="font-display text-[clamp(3rem,10vw,8rem)] 
+          leading-[0.85] text-foreground max-w-4xl"
+        >
+          Authentic
+          <br />
+          <em className="text-primary not-italic">Noodles</em>
+          <br />
+          Since Dawn
+        </motion.h1>
+        
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1, delay: 0.6 }}
+          className="mt-8 flex flex-col md:flex-row md:items-center gap-6"
+        >
+          <p className="text-muted-foreground text-lg md:text-xl max-w-md font-sans leading-relaxed">
+            ก๋วยเตี๋ยวต้มเลือดหมูสูตรดั้งเดิม ปรุงด้วยใจทุกวัน 
+            สัมผัสรสชาติระดับตำนานที่สืบทอดมานานกว่า 30 ปี
+          </p>
+          <div className="h-px w-12 bg-primary/50 hidden md:block" />
+          <div className="flex flex-col">
+            <span className="font-accent text-primary text-2xl tracking-wider">OPEN DAILY</span>
+            <span className="text-sm text-muted-foreground uppercase">06:00 AM - 02:00 PM</span>
+          </div>
         </motion.div>
       </div>
       
-      {/* Decorative blurs */}
-      <motion.div 
-        initial={{ opacity: 0, x: -50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, delay: 0.3 }}
-        className="absolute top-1/2 left-0 -translate-y-1/2 w-64 h-64 bg-primary/10 rounded-full blur-3xl -z-10"
-      ></motion.div>
-      <motion.div 
-        initial={{ opacity: 0, x: 50 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 1, delay: 0.5 }}
-        className="absolute top-1/2 right-0 -translate-y-1/2 w-64 h-64 bg-secondary/10 rounded-full blur-3xl -z-10"
-      ></motion.div>
+      {/* Ambient glow */}
+      <div className="absolute inset-0 hero-glow pointer-events-none" />
     </section>
   );
 }

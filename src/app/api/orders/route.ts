@@ -16,6 +16,8 @@ import {
 import { createOrderSchema, validateRequest } from '@/lib/validations';
 import { getAuthUser, authUnauthorized } from '@/lib/auth';
 import { NextRequest } from 'next/server';
+import { sendNewOrderNotification } from '@/lib/push-notifications';
+import { events, APP_EVENTS } from '@/lib/events';
 
 // GET /api/orders - Get all orders
 export async function GET(request: NextRequest) {
@@ -191,6 +193,19 @@ export async function POST(request: NextRequest) {
     const orderItemsResult = await db.select()
       .from(orderItems)
       .where(eq(orderItems.orderId, newOrder.id));
+    
+    // Trigger push notification to admins
+    try {
+      await sendNewOrderNotification(newOrder.id, newOrder.orderNumber);
+    } catch (pushError) {
+      console.error('Error sending push notification:', pushError);
+    }
+
+    // Trigger SSE event
+    events.emit(APP_EVENTS.ORDER_CREATED, {
+      orderId: newOrder.id,
+      status: newOrder.status,
+    });
     
     return createdResponse({
       ...completeOrder,

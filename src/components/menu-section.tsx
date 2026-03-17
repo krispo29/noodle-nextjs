@@ -1,44 +1,133 @@
 "use client"
 
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ArrowRight } from "lucide-react";
 import { MenuItemModal } from "@/components/menu-item-modal";
 import { getMenuItems, type MenuItem } from "@/actions/menu";
-import { motion } from "framer-motion";
+import { motion, useMotionValue, useSpring } from "framer-motion";
 import Image from "next/image";
+import { cn } from "@/lib/utils";
 
-// Animation variants for staggered cards
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: (i: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: {
-      delay: i * 0.1,
-      duration: 0.5,
-      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number]
-    }
-  })
+const WordReveal = ({ text, className }: { text: string; className?: string }) => {
+  const words = text.split(" ");
+  return (
+    <h2 className={cn("font-display overflow-hidden flex flex-wrap", className)}>
+      {words.map((word, i) => (
+        <motion.span
+          key={i}
+          className="inline-block mr-3"
+          initial={{ y: "110%", opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          transition={{
+            delay: i * 0.08,
+            duration: 0.6,
+            ease: [0.16, 1, 0.3, 1],
+          }}
+          viewport={{ once: true }}
+        >
+          {word}
+        </motion.span>
+      ))}
+    </h2>
+  );
 };
 
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1
-    }
-  }
+const MenuCard = ({ 
+  item, 
+  className, 
+  onSelect 
+}: { 
+  item: MenuItem; 
+  className?: string; 
+  onSelect: (item: MenuItem) => void 
+}) => {
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+
+  const springConfig = { damping: 25, stiffness: 150 };
+  const dx = useSpring(mouseX, springConfig);
+  const dy = useSpring(mouseY, springConfig);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    mouseX.set((x - rect.width / 2) / 15);
+    mouseY.set((y - rect.height / 2) / 15);
+  };
+
+  const handleMouseLeave = () => {
+    mouseX.set(0);
+    mouseY.set(0);
+  };
+
+  return (
+    <motion.div
+      className={cn(
+        "group relative overflow-hidden rounded-2xl cursor-pointer border border-border/40 bg-card",
+        className
+      )}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      onClick={() => onSelect(item)}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      whileHover={{ y: -5 }}
+      transition={{ duration: 0.4 }}
+    >
+      {/* Background Image with Parallax effect */}
+      <motion.div 
+        className="absolute inset-0 z-0"
+        style={{ x: dx, y: dy, scale: 1.1 }}
+      >
+        <Image 
+          src={item.image} 
+          alt={item.name} 
+          fill 
+          className="object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-500"
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+      </motion.div>
+
+      {/* Content */}
+      <div className="relative z-10 h-full flex flex-col justify-end p-6 md:p-8">
+        <div className="flex justify-between items-start mb-2">
+          {item.isRecommended && (
+            <Badge className="bg-primary text-primary-foreground font-accent tracking-widest text-[10px] uppercase px-2 py-0.5 mb-2">
+              RECOMMENDED
+            </Badge>
+          )}
+          <span className="font-accent text-3xl text-primary drop-shadow-lg">
+            ฿{item.price}
+          </span>
+        </div>
+        
+        <h3 className="font-display text-2xl md:text-3xl text-foreground mb-1 group-hover:text-primary transition-colors">
+          {item.name}
+        </h3>
+        <p className="text-muted-foreground text-sm line-clamp-2 mb-4 font-sans max-w-xs">
+          {item.description}
+        </p>
+
+        <div className="flex items-center text-primary font-accent tracking-widest text-xs uppercase group-hover:translate-x-2 transition-transform duration-300">
+          ORDER NOW <ArrowRight className="ml-2 h-3 w-3" />
+        </div>
+      </div>
+
+      {/* Hover Highlight Overlay */}
+      <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+    </motion.div>
+  );
 };
 
 export function MenuSection() {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
     async function fetchMenu() {
@@ -54,25 +143,6 @@ export function MenuSection() {
     fetchMenu();
   }, []);
 
-  // Intersection observer for animation trigger
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    const menuSection = document.getElementById("menu");
-    if (menuSection) {
-      observer.observe(menuSection);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
   const handleOpenModal = (item: MenuItem) => {
     setSelectedItem(item);
   };
@@ -82,75 +152,63 @@ export function MenuSection() {
   };
 
   return (
-    <section id="menu" className="py-24 bg-muted/30">
-      <div className="container mx-auto px-4">
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={isVisible ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.5 }}
-          className="text-center mb-16 max-w-2xl mx-auto"
-        >
-          <Badge variant="outline" className="mb-4 text-primary border-primary/30">ยอดฮิตติดดาว</Badge>
-          <h2 className="text-3xl md:text-5xl font-bold mb-4">เมนูแนะนำของแม่</h2>
-          <p className="text-muted-foreground text-lg">เลือกความอร่อยได้ตามใจชอบ ทั้งชามน้ำ ชามแห้ง เส้นเหนียวนุ่มและเครื่องเน้นๆ</p>
-        </motion.div>
+    <section id="menu" className="py-32 px-4 md:px-8 bg-background relative">
+      <div className="container mx-auto">
+        {/* Section header — editorial style */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
+          <div className="max-w-xl">
+            <span className="font-accent text-primary tracking-[0.4em] text-sm uppercase block mb-4">
+              OUR MENU
+            </span>
+            <WordReveal 
+              text="เลือกความอร่อยระดับตำนาน ที่คุณต้องลอง" 
+              className="text-4xl md:text-7xl text-foreground leading-[1.1]"
+            />
+          </div>
+          <div className="hidden md:block w-32 h-px bg-border/60 mb-6" />
+          <p className="text-muted-foreground text-lg md:text-xl font-sans max-w-sm">
+            สูตรลับที่ตกทอดมาหลายทศวรรษ ทุกชามปรุงด้วยความพิถีพิถันและวัตถุดิบที่ดีที่สุด
+          </p>
+        </div>
         
         {isLoading ? (
           <div className="flex justify-center py-24">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
         ) : menuItems.length === 0 ? (
-          <div className="text-center py-24 text-muted-foreground">ไม่พบรายการอาหารอัพเดทในระบบขณะนี้</div>
+          <div className="text-center py-24 text-muted-foreground font-sans">
+            ไม่พบรายการอาหารอัพเดทในระบบขณะนี้
+          </div>
         ) : (
-          <motion.div 
-            variants={containerVariants}
-            initial="hidden"
-            animate={isVisible ? "visible" : "hidden"}
-            className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-8"
-          >
-            {menuItems.map((item, index) => (
-              <motion.div
-                key={item.id}
-                custom={index}
-                variants={cardVariants}
-              >
-                <Card className="flex flex-col group overflow-hidden border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 bg-card/50 backdrop-blur-sm h-full">
-                  <div className="h-48 relative bg-muted/80 flex items-center justify-center overflow-hidden">
-                    <Image 
-                      src={item.image} 
-                      alt={item.name} 
-                      fill 
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                    />
-                  </div>
-                  <CardHeader className="pt-6 relative">
-                    <div className="flex justify-between items-start gap-4">
-                      <CardTitle className="text-xl font-bold">{item.name}</CardTitle>
-                      {item.isRecommended && (
-                        <Badge variant="default" className="shrink-0 bg-primary/90 hover:bg-primary shadow-sm">แนะนำ</Badge>
-                      )}
-                    </div>
-                    <CardDescription className="min-h-[48px] pt-1 text-sm leading-relaxed">{item.description}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="mt-auto pb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-black text-primary">฿{item.price}</span>
-                      <span className="text-xs text-muted-foreground">เริ่มที่</span>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="pt-0">
-                    <Button 
-                      className="w-full font-medium shadow-sm group-hover:bg-primary text-primary-foreground group-hover:text-primary-foreground transition-all duration-300 hover:scale-105 active:scale-95" 
-                      onClick={() => handleOpenModal(item)}
-                    >
-                      <Plus className="mr-2 h-4 w-4" /> เลือกรูปแบบ
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-[220px] md:auto-rows-[250px] gap-6">
+            {menuItems.map((item, index) => {
+              // Create a bento layout pattern
+              let gridSpan = "md:col-span-4 row-span-1";
+              
+              if (index === 0) {
+                gridSpan = "md:col-span-8 row-span-2"; // Featured
+              } else if (index === 1) {
+                gridSpan = "md:col-span-4 row-span-2"; // Tall
+              } else if (index === 2) {
+                gridSpan = "md:col-span-6 row-span-1"; // Wide
+              } else if (index === 3) {
+                gridSpan = "md:col-span-6 row-span-1"; // Wide
+              } else if (index === 4) {
+                gridSpan = "md:col-span-4 row-span-1";
+              } else if (index === 5) {
+                gridSpan = "md:col-span-8 row-span-1"; // Wide
+              }
+              
+              return (
+                <MenuCard 
+                  key={item.id} 
+                  item={item} 
+                  className={gridSpan}
+                  onSelect={handleOpenModal}
+                />
+              );
+            })}
+          </div>
         )}
       </div>
 
@@ -159,6 +217,10 @@ export function MenuSection() {
         onClose={handleCloseModal} 
         item={selectedItem} 
       />
+      
+      {/* Decorative blurs */}
+      <div className="absolute top-1/2 left-0 -translate-y-1/2 w-96 h-96 bg-primary/5 rounded-full blur-[120px] -z-10" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[120px] -z-10" />
     </section>
   );
 }

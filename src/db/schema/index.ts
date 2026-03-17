@@ -8,3 +8,4 @@ export * from './categories';
 export * from './menu';
 export * from './orders';
 export * from './sessions';
+export * from './push-subscriptions';

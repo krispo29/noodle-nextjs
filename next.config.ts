@@ -33,10 +33,13 @@ const nextConfig: NextConfig = {
       '@radix-ui/react-toast',
     ],
   },
-  
+
   // Enable compression
   compress: true,
-  
+
+  // Use node.js runtime instead of edge for API routes
+  serverExternalPackages: ['web-push'],
+
   // Security headers
   async headers() {
     return [
@@ -81,7 +84,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: "Content-Security-Policy",
-            value: 
+            value:
               "default-src 'self'; " +
               "script-src 'self' 'unsafe-eval' 'unsafe-inline'; " +
               "style-src 'self' 'unsafe-inline'; " +
@@ -110,6 +113,27 @@ const nextConfig: NextConfig = {
           {
             key: "Expires",
             value: "0",
+          },
+        ],
+      },
+      {
+        source: "/api/orders/stream",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+          {
+            key: "Connection",
+            value: "keep-alive",
+          },
+          {
+            key: "Content-Type",
+            value: "text/event-stream",
+          },
+          {
+            key: "X-Accel-Buffering",
+            value: "no",
           },
         ],
       },

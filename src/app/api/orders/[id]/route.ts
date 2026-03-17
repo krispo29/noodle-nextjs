@@ -16,6 +16,7 @@ import {
 } from '@/lib/api-response';
 import { updateOrderSchema, validateRequest } from '@/lib/validations';
 import { NextRequest } from 'next/server';
+import { events, APP_EVENTS } from '@/lib/events';
 
 // GET /api/orders/[id] - Get an order by ID
 export async function GET(
@@ -85,6 +86,14 @@ export async function PUT(
       })
       .where(eq(orders.id, id))
       .returning();
+    
+    // Trigger SSE event if status changed
+    if (validation.data!.status) {
+      events.emit(APP_EVENTS.ORDER_STATUS_UPDATED, {
+        orderId: updated.id,
+        status: updated.status,
+      });
+    }
     
     // Get order items
     const items = await db.select()

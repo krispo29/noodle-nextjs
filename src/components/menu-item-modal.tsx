@@ -24,9 +24,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { useCartStore } from "@/store/useCartStore"
 import type { MenuItem } from "@/actions/menu"
 import Image from "next/image"
-import { Plus, Minus, X, Clock, Info } from "lucide-react"
+import { Plus, Minus, X, Clock, Info, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
+import { motion, AnimatePresence } from "framer-motion"
 
 const NOODLE_TYPES = [
   { id: "เล็ก", label: "เส้นเล็ก" },
@@ -73,13 +74,12 @@ export function MenuItemModal({ isOpen, onClose, item }: MenuItemModalProps) {
   const form = useForm({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      noodleType: "เล็ก", // Default to sen lek
+      noodleType: "เล็ก",
       toppings: [],
       specialRequest: "",
     },
   })
 
-  // Watch for topping changes to recalculate the modal price
   const watchToppings = form.watch("toppings")
 
   useEffect(() => {
@@ -95,7 +95,6 @@ export function MenuItemModal({ isOpen, onClose, item }: MenuItemModalProps) {
     }
   }, [item, watchToppings, quantity])
 
-  // Reset form when opened with a new item
   useEffect(() => {
     if (isOpen) {
       form.reset({
@@ -115,7 +114,7 @@ export function MenuItemModal({ isOpen, onClose, item }: MenuItemModalProps) {
     addItem({
       id: item.id,
       name: item.name,
-      price: totalPrice, // Save the calculated base item + toppings price as the cart price
+      price: totalPrice,
       quantity: quantity,
       options: {
         noodleType: values.noodleType,
@@ -128,18 +127,17 @@ export function MenuItemModal({ isOpen, onClose, item }: MenuItemModalProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none bg-background/95 backdrop-blur-xl shadow-2xl rounded-[2rem]">
-        {/* Floating Close Button */}
+      <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden border-border/40 bg-card/80 backdrop-blur-2xl shadow-[0_30px_100px_rgba(0,0,0,0.8)] rounded-3xl">
         <button 
           onClick={onClose}
-          className="absolute right-4 top-4 z-50 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all duration-200 shadow-sm"
+          className="absolute right-6 top-6 z-50 p-2 rounded-full bg-black/40 hover:bg-primary text-white transition-all duration-300 shadow-xl border border-white/10"
         >
           <X className="h-5 w-5" />
         </button>
 
-        <div className="max-h-[85vh] overflow-y-auto overflow-x-hidden custom-scrollbar pb-24">
-          {/* Hero Section */}
-          <div className="relative w-full h-64 sm:h-72">
+        <div className="max-h-[90vh] overflow-y-auto custom-scrollbar">
+          {/* Hero Image Section */}
+          <div className="relative w-full h-[350px]">
             {item.image ? (
               <>
                 <Image 
@@ -149,223 +147,216 @@ export function MenuItemModal({ isOpen, onClose, item }: MenuItemModalProps) {
                   className="object-cover"
                   priority
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
               </>
             ) : (
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-4xl text-primary font-bold">{item.name[0]}</span>
-                </div>
+              <div className="absolute inset-0 bg-primary/10 flex items-center justify-center">
+                <span className="text-8xl text-primary/20 font-display">{item.name[0]}</span>
               </div>
             )}
             
-            <div className="absolute bottom-0 left-0 right-0 p-6 space-y-2">
-              <div className="flex items-center gap-3">
-                <h2 className="text-3xl font-black tracking-tight text-foreground drop-shadow-sm">
+            <div className="absolute bottom-0 left-0 right-0 p-8">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-3">
+                  <span className="font-accent text-primary tracking-[0.4em] text-[10px] uppercase">LEGENDARY FLAVOR</span>
+                  {item.isRecommended && (
+                    <Badge className="bg-primary text-primary-foreground font-accent text-[9px] tracking-widest border-none px-2 py-0.5 rounded-full uppercase">
+                      Recommended
+                    </Badge>
+                  )}
+                </div>
+                <h2 className="text-4xl md:text-5xl font-display text-foreground leading-tight">
                   {item.name}
                 </h2>
-                {item.isRecommended && (
-                  <Badge className="bg-primary text-primary-foreground border-none px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider">
-                    Recommended
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-4 text-sm font-medium text-muted-foreground/80">
-                <div className="flex items-center gap-1.5 bg-primary/5 px-2.5 py-1 rounded-full border border-primary/10">
-                  <Clock className="w-3.5 h-3.5 text-primary" />
-                  <span>Freshly Prepared</span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-muted/50 px-2.5 py-1 rounded-full border border-border/50">
-                  <Info className="w-3.5 h-3.5" />
-                  <span>High Quality</span>
-                </div>
               </div>
             </div>
           </div>
 
-          <div className="px-6 space-y-8 mt-4">
+          <div className="p-8 space-y-10">
             {item.description && (
-              <p className="text-muted-foreground leading-relaxed text-[15px]">
-                {item.description}
+              <p className="text-muted-foreground text-lg leading-relaxed font-sans italic opacity-80 border-l-2 border-primary/40 pl-6">
+                &quot;{item.description}&quot;
               </p>
             )}
 
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            
-            <FormField
-              control={form.control}
-              name="noodleType"
-              render={({ field }) => (
-                <FormItem className="space-y-4">
-                  <div className="flex items-end justify-between px-1">
-                    <FormLabel className="text-lg font-bold tracking-tight">
-                      เลือกเส้นก๋วยเตี๋ยว <span className="text-primary ml-1">*</span>
-                    </FormLabel>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">Required</span>
-                  </div>
-                  <FormControl>
-                    <RadioGroup
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                      className="grid grid-cols-1 sm:grid-cols-2 gap-3"
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-12 pb-24">
+                
+                {/* Noodle Selection */}
+                <FormField
+                  control={form.control}
+                  name="noodleType"
+                  render={({ field }) => (
+                    <FormItem className="space-y-6">
+                      <div className="flex items-end justify-between border-b border-border/20 pb-4">
+                        <FormLabel className="font-display text-2xl">
+                          Select <span className="text-primary">Noodles</span>
+                        </FormLabel>
+                        <span className="font-accent tracking-widest text-[10px] text-primary uppercase">MANDATORY</span>
+                      </div>
+                      <FormControl>
+                        <RadioGroup
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                          className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                        >
+                          {NOODLE_TYPES.map((type) => {
+                            const isSelected = field.value === type.id;
+                            return (
+                              <FormItem 
+                                key={type.id} 
+                                className={cn(
+                                  "relative flex items-center h-16 px-6 rounded-2xl cursor-pointer transition-all duration-300 border",
+                                  isSelected 
+                                    ? "border-primary bg-primary/10 shadow-lg shadow-primary/5" 
+                                    : "border-border/40 hover:bg-white/5 hover:border-border"
+                                )}
+                              >
+                                <FormControl>
+                                  <RadioGroupItem value={type.id} className="sr-only" />
+                                </FormControl>
+                                <FormLabel className="font-accent tracking-widest text-xs uppercase cursor-pointer w-full flex justify-between items-center">
+                                  <span className={cn(isSelected ? "text-primary" : "text-muted-foreground")}>
+                                    {type.label}
+                                  </span>
+                                  {isSelected && <div className="w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_10px_rgba(var(--primary),0.5)]" />}
+                                </FormLabel>
+                              </FormItem>
+                            );
+                          })}
+                        </RadioGroup>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Toppings Selection */}
+                <FormField
+                  control={form.control}
+                  name="toppings"
+                  render={() => (
+                    <FormItem className="space-y-6">
+                      <div className="flex items-end justify-between border-b border-border/20 pb-4">
+                        <FormLabel className="font-display text-2xl">Elevate <span className="text-primary">Dish</span></FormLabel>
+                        <span className="font-accent tracking-widest text-[10px] text-muted-foreground uppercase">OPTIONAL</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {TOPPINGS.map((topping) => (
+                          <FormField
+                            key={topping.id}
+                            control={form.control}
+                            name="toppings"
+                            render={({ field }) => {
+                              const isSelected = field.value?.includes(topping.id);
+                              return (
+                                <FormItem
+                                  key={topping.id}
+                                  className={cn(
+                                    "relative flex flex-row items-center h-16 px-6 rounded-2xl border transition-all duration-300 cursor-pointer",
+                                    isSelected
+                                      ? "border-primary bg-primary/10"
+                                      : "border-border/40 hover:bg-white/5 hover:border-border"
+                                  )}
+                                >
+                                  <FormControl>
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onCheckedChange={(checked) => {
+                                        return checked
+                                          ? field.onChange([...field.value, topping.id])
+                                          : field.onChange(
+                                              field.value?.filter(
+                                                (value) => value !== topping.id
+                                              )
+                                            )
+                                      }}
+                                      className="rounded border-border/60 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                                    />
+                                  </FormControl>
+                                  <FormLabel className="font-accent tracking-widest text-[11px] uppercase cursor-pointer w-full flex justify-between items-center ml-4">
+                                    <span className={cn(isSelected ? "text-primary" : "text-muted-foreground")}>
+                                      {topping.label.split(" (")[0]}
+                                    </span>
+                                    <span className="text-[10px] opacity-60">
+                                      +฿{topping.price}
+                                    </span>
+                                  </FormLabel>
+                                </FormItem>
+                              )
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                {/* Special Request */}
+                <FormField
+                  control={form.control}
+                  name="specialRequest"
+                  render={({ field }) => (
+                    <FormItem className="space-y-6">
+                      <div className="flex items-end justify-between border-b border-border/20 pb-4">
+                        <FormLabel className="font-display text-2xl">Chef Notes</FormLabel>
+                      </div>
+                      <FormControl>
+                        <Textarea
+                          placeholder="EX: NO GARLIC, EXTRA SPICY..."
+                          className="min-h-[120px] resize-none rounded-2xl bg-white/5 border-border/40 focus:border-primary font-accent tracking-widest text-[10px] uppercase transition-all duration-500 p-6"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                
+                {/* Bottom Action Bar */}
+                <div className="fixed bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-card via-card to-transparent z-50">
+                  <div className="flex items-center gap-4">
+                    {/* Quantity */}
+                    <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl h-16 px-4">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-xl hover:bg-white/10 text-primary"
+                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                        disabled={quantity <= 1}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                      <span className="text-2xl font-accent w-12 text-center text-foreground">{quantity}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-10 w-10 rounded-xl hover:bg-white/10 text-primary"
+                        onClick={() => setQuantity(quantity + 1)}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    {/* Submit */}
+                    <Button 
+                      type="submit" 
+                      className="flex-1 h-16 bg-primary hover:bg-primary/90 text-primary-foreground font-accent tracking-widest text-sm rounded-2xl shadow-2xl shadow-primary/20 transition-all active:scale-95 flex items-center justify-between px-8"
                     >
-                      {NOODLE_TYPES.map((type) => {
-                        const isSelected = field.value === type.id;
-                        return (
-                          <FormItem 
-                            key={type.id} 
-                            className={cn(
-                              "relative flex items-center space-x-3 space-y-0 border-2 rounded-2xl p-4 cursor-pointer transition-all duration-200",
-                              isSelected 
-                                ? "border-primary bg-primary/5 ring-4 ring-primary/5 shadow-sm" 
-                                : "border-border/50 hover:border-border hover:bg-muted/30"
-                            )}
-                          >
-                            <FormControl>
-                              <RadioGroupItem value={type.id} className="sr-only" />
-                            </FormControl>
-                            <FormLabel className="font-semibold cursor-pointer w-full flex justify-between items-center text-[15px]">
-                              <span className={cn(isSelected ? "text-primary" : "text-foreground")}>
-                                {type.label}
-                              </span>
-                            </FormLabel>
-                          </FormItem>
-                        );
-                      })}
-                    </RadioGroup>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="toppings"
-              render={() => (
-                <FormItem className="space-y-4">
-                  <div className="flex items-end justify-between px-1">
-                    <FormLabel className="text-lg font-bold tracking-tight">เพิ่มท็อปปิ้ง (เลือกได้หลายอย่าง)</FormLabel>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Optional</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {TOPPINGS.map((topping) => (
-                      <FormField
-                        key={topping.id}
-                        control={form.control}
-                        name="toppings"
-                        render={({ field }) => {
-                          const isSelected = field.value?.includes(topping.id);
-                          return (
-                            <FormItem
-                              key={topping.id}
-                              className={cn(
-                                "relative flex flex-row items-center space-x-3 space-y-0 rounded-2xl border-2 p-4 transition-all duration-200 cursor-pointer",
-                                isSelected
-                                  ? "border-primary bg-primary/5 ring-4 ring-primary/5 shadow-sm"
-                                  : "border-border/50 hover:border-border hover:bg-muted/30"
-                              )}
-                            >
-                              <FormControl>
-                                <Checkbox
-                                  checked={isSelected}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, topping.id])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value !== topping.id
-                                          )
-                                        )
-                                  }}
-                                  className="rounded-full h-5 w-5"
-                                />
-                              </FormControl>
-                              <FormLabel className="text-[14px] font-semibold cursor-pointer w-full flex justify-between items-center pr-1">
-                                <span className={cn(isSelected ? "text-primary" : "text-foreground")}>
-                                  {topping.label.split(" (")[0]}
-                                </span>
-                                <Badge variant="secondary" className="font-bold bg-background text-[10px] scale-90 origin-right">
-                                  +{topping.price}฿
-                                </Badge>
-                              </FormLabel>
-                            </FormItem>
-                          )
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="specialRequest"
-              render={({ field }) => (
-                <FormItem className="space-y-4 pb-4">
-                  <div className="flex items-end justify-between px-1">
-                    <FormLabel className="text-lg font-bold tracking-tight">ความต้องการพิเศษ</FormLabel>
-                  </div>
-                  <FormControl>
-                    <Textarea
-                      placeholder="เช่น ไม่กระเทียมเจียว, ขอรสจัดๆ"
-                      className="min-h-[100px] resize-none rounded-2xl bg-muted/30 border-2 border-border/50 focus:border-primary transition-all duration-200"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Final Actions Area */}
-            <div className="sticky bottom-0 left-0 right-0 pt-6 pb-2 bg-gradient-to-t from-background via-background to-transparent z-40">
-              <div className="bg-background/80 backdrop-blur-md border border-border/50 rounded-[2.5rem] p-3 shadow-xl ring-1 ring-black/5">
-                <div className="flex items-center justify-between gap-4">
-                  {/* Modern Quantity Selector */}
-                  <div className="flex items-center bg-muted/50 rounded-full p-1.5 h-14 min-w-[140px] justify-between border border-border/30">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 rounded-full bg-background hover:bg-primary/5 hover:text-primary shadow-sm"
-                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                      disabled={quantity <= 1}
-                    >
-                      <Minus className="h-4 w-4" />
+                      <span className="uppercase">ADD TO BASKET</span>
+                      <div className="flex items-center gap-2">
+                        <div className="w-1 h-1 bg-primary-foreground/40 rounded-full" />
+                        <span className="text-xl">฿{totalPrice}</span>
+                      </div>
                     </Button>
-                    <span className="text-xl font-black w-8 text-center tabular-nums">{quantity}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 rounded-full bg-background hover:bg-primary/5 hover:text-primary shadow-sm"
-                      onClick={() => setQuantity(quantity + 1)}
-                    >
-                      <Plus className="h-4 w-4" />
-                    </Button>
                   </div>
-
-                  {/* Add to Cart Button */}
-                  <Button 
-                    type="submit" 
-                    size="lg"
-                    className="flex-1 h-14 text-lg font-black bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-[0_8px_30px_rgb(var(--primary-rgb),0.3)] transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                  >
-                    เพิ่มลงตะกร้า • ฿{totalPrice}
-                  </Button>
                 </div>
-              </div>
-            </div>
-          </form>
-        </Form>
-      </div>
-    </div>
-  </DialogContent>
-</Dialog>
+              </form>
+            </Form>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

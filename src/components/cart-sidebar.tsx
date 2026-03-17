@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { ShoppingCart, Plus, Minus, Trash2, Send } from "lucide-react"
+import { ShoppingCart, Plus, Minus, Trash2, Send, X } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -29,12 +29,12 @@ import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { generateLineOrderUrl } from "@/lib/generateLineOrderUrl"
 import { motion, AnimatePresence } from "framer-motion"
+import { cn } from "@/lib/utils"
 
 // PromptPay Integration
 import generatePayload from "promptpay-qr"
 import { QRCodeSVG } from "qrcode.react"
 
-// Use environment variable for PromptPay number
 const SHOP_PROMPTPAY_NUMBER = process.env.NEXT_PUBLIC_PROMPTPAY_NUMBER || "0812345678"
 
 const checkoutSchema = z.object({
@@ -52,7 +52,7 @@ const checkoutSchema = z.object({
   path: ["tableNumber"],
 })
 
-  export function CartSidebar() {
+export function CartSidebar() {
   const [isOpen, setIsOpen] = useState(false)
   const { items, updateQuantity, removeItem, getCartTotal } = useCartStore()
   
@@ -66,9 +66,7 @@ const checkoutSchema = z.object({
     },
   })
 
-  // Watch for changes to toggle phone/table fields
   const orderType = form.watch("orderType")
-
   const itemCount = items.reduce((total, item) => total + item.quantity, 0)
   const totalPrice = getCartTotal()
 
@@ -79,254 +77,289 @@ const checkoutSchema = z.object({
 
   return (
     <>
-      <motion.div
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-        className="fixed bottom-6 right-6 z-50"
-      >
-        <Button 
-          size="lg" 
-          className="h-16 px-6 rounded-full shadow-2xl transition-transform hover:scale-105"
-          onClick={() => setIsOpen(true)}
-        >
-          <div className="relative">
-            <ShoppingCart className="h-6 w-6 mr-3" />
-            <AnimatePresence>
-              {itemCount > 0 && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0 }}
-                >
-                  <Badge className="absolute -top-1.5 -right-3 px-1.5 py-0.5 bg-red-600 text-white border-2 border-primary text-[10px] font-black rounded-full min-w-[20px] h-5 flex items-center justify-center shadow-lg">
-                    {itemCount}
-                  </Badge>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-          <div className="flex flex-col items-start ml-2 text-left">
-            <span className="text-xs font-normal opacity-90">ตะกร้าของคุณ</span>
-            <span className="text-sm font-bold">฿{totalPrice}</span>
-          </div>
-        </Button>
-      </motion.div>
+      {/* Floating Cart Trigger Button */}
+      <AnimatePresence>
+        {!isOpen && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0, opacity: 0, y: 20 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="fixed bottom-6 right-6 z-50"
+          >
+            <Button 
+              size="lg" 
+              className="h-16 px-8 rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-primary text-primary-foreground border-none transition-all group overflow-hidden"
+              onClick={() => setIsOpen(true)}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <div className="relative flex items-center gap-3">
+                <div className="relative">
+                  <ShoppingCart className="h-6 w-6" />
+                  {itemCount > 0 && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-3 -right-3 h-5 min-w-[20px] px-1 bg-accent text-white text-[10px] font-accent flex items-center justify-center rounded-full border-2 border-primary shadow-lg"
+                    >
+                      {itemCount}
+                    </motion.div>
+                  )}
+                </div>
+                <div className="flex flex-col items-start leading-none">
+                  <span className="font-accent tracking-widest text-[10px] uppercase opacity-80">YOUR BASKET</span>
+                  <span className="font-display text-xl">฿{totalPrice}</span>
+                </div>
+              </div>
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      
-      <SheetContent className="w-full sm:max-w-md flex flex-col">
-        <SheetHeader className="pb-4">
-          <SheetTitle className="text-2xl font-bold flex items-center">
-            <ShoppingCart className="mr-2 h-6 w-6" /> สรุปรายการอาหาร
-          </SheetTitle>
-        </SheetHeader>
-        
-        {items.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground space-y-4">
-            <ShoppingCart className="h-16 w-16 opacity-20" />
-            <p>ยังไม่มีรายการอาหารในตะกร้า</p>
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
-              กลับไปเลือกเมนู
+        <SheetContent 
+          side="right"
+          className="w-full sm:max-w-[420px] p-0 bg-card/80 backdrop-blur-2xl border-l border-border/40 shadow-2xl flex flex-col"
+        >
+          {/* Custom Header */}
+          <div className="p-6 md:p-8 flex items-center justify-between border-b border-border/20">
+            <div>
+              <span className="font-accent text-primary tracking-widest text-xs uppercase">SHOPPING CART</span>
+              <SheetTitle className="font-display text-3xl mt-1">สรุปรายการ</SheetTitle>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="rounded-full hover:bg-white/5" 
+              onClick={() => setIsOpen(false)}
+            >
+              <X className="h-5 w-5" />
             </Button>
           </div>
-        ) : (
-          <>
-            <ScrollArea className="flex-1 -mx-6 px-6">
-              <div className="space-y-4 pb-6">
-                {items.map((item) => (
-                  <div key={item.cartItemId} className="flex gap-4 bg-muted/30 p-3 rounded-lg border border-border/50">
-                    <div className="flex-1 space-y-1">
-                      <div className="flex justify-between">
-                        <h4 className="font-semibold text-sm leading-none">
-                          {item.name}
-                          {item.options?.noodleType && (
-                            <span className="text-primary"> ({item.options.noodleType})</span>
-                          )}
-                          {/* Display new format selected options */}
-                          {item.options?.selectedOptions && !item.options?.noodleType && (
-                            <span className="text-primary">
-                              {Object.entries(item.options.selectedOptions).map(([key, value]) => {
-                                if (Array.isArray(value) && value.length > 0) {
-                                  return ` (${key}: ${value.join(", ")})`;
-                                }
-                                return value ? ` (${key}: ${value})` : "";
-                              })}
-                            </span>
-                          )}
-                        </h4>
-                        <span className="font-bold text-sm">฿{item.price * item.quantity}</span>
-                      </div>
-                      
-                      {/* Toppings - support both legacy and new formats */}
-                      {((item.options?.toppings?.length || 0) > 0 || (item.options?.selectedToppings?.length || 0) > 0 || item.options?.specialRequest) ? (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {(item.options?.toppings || item.options?.selectedToppings || []).map((topping: string) => (
-                            <p key={topping}>+ {topping}</p>
-                          ))}
-                          {item.options?.specialRequest && (
-                            <p className="italic">&quot;{item.options.specialRequest}&quot;</p>
-                          )}
-                        </div>
-                      ) : null}
-                      
-                      <div className="flex items-center justify-between mt-3">
-                        <div className="flex items-center space-x-2 bg-background border rounded-md">
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-r-none" 
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
-                          >
-                            <Minus className="h-3 w-3" />
-                          </Button>
-                          <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-l-none" 
-                            onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
-                          >
-                            <Plus className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => removeItem(item.cartItemId)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+          
+          {items.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground p-8">
+              <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-6">
+                <ShoppingCart className="h-10 w-10 opacity-20" />
               </div>
-              
-              <Separator className="my-4" />
-              
-              <div className="py-2 space-y-6">
-                <div className="flex justify-between items-center text-lg font-bold">
-                  <span>ยอดรวมทั้งสิ้น</span>
-                  <span className="text-2xl text-primary">฿{totalPrice}</span>
+              <p className="font-display text-xl mb-4">ยังไม่มีรายการอาหาร</p>
+              <Button 
+                variant="outline" 
+                className="font-accent tracking-widest text-xs"
+                onClick={() => setIsOpen(false)}
+              >
+                GO BACK TO MENU
+              </Button>
+            </div>
+          ) : (
+            <>
+              <ScrollArea className="flex-1 px-6 md:px-8 py-6">
+                <div className="space-y-6">
+                  <AnimatePresence mode="popLayout">
+                    {items.map((item) => (
+                      <motion.div 
+                        key={item.cartItemId} 
+                        layout
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -20, height: 0 }}
+                        className="flex gap-4 group"
+                      >
+                        <div className="flex-1 space-y-2">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-display text-lg leading-tight group-hover:text-primary transition-colors">
+                              {item.name}
+                              {item.options?.noodleType && (
+                                <span className="text-primary text-sm block font-sans"> ({item.options.noodleType})</span>
+                              )}
+                            </h4>
+                            <span className="font-accent text-xl text-primary">฿{item.price * item.quantity}</span>
+                          </div>
+                          
+                          {/* Options display */}
+                          {item.options?.selectedOptions && (
+                            <div className="text-[10px] text-muted-foreground font-sans uppercase tracking-wider flex flex-wrap gap-2">
+                              {Object.entries(item.options.selectedOptions).map(([key, value]) => (
+                                <span key={key} className="bg-white/5 px-2 py-0.5 rounded border border-white/10">
+                                  {key}: {Array.isArray(value) ? value.join(", ") : value}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          
+                          {/* Special Request */}
+                          {item.options?.specialRequest && (
+                            <p className="text-xs italic text-muted-foreground font-sans">&quot;{item.options.specialRequest}&quot;</p>
+                          )}
+                          
+                          <div className="flex items-center justify-between pt-2">
+                            <div className="flex items-center space-x-3 bg-white/5 border border-white/10 rounded-full px-1">
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-full hover:bg-white/10" 
+                                onClick={() => updateQuantity(item.cartItemId, item.quantity - 1)}
+                              >
+                                <Minus className="h-3 w-3" />
+                              </Button>
+                              <span className="text-sm font-accent min-w-[20px] text-center">{item.quantity}</span>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 rounded-full hover:bg-white/10" 
+                                onClick={() => updateQuantity(item.cartItemId, item.quantity + 1)}
+                              >
+                                <Plus className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 text-destructive opacity-40 hover:opacity-100 hover:bg-destructive/10 rounded-full"
+                              onClick={() => removeItem(item.cartItemId)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
                 
-                {totalPrice > 0 && (
-                  <div className="bg-white p-4 rounded-xl border flex flex-col items-center justify-center space-y-3">
-                    <p className="text-sm font-semibold text-center text-slate-800">สแกนจ่ายผ่านพร้อมเพย์ (PromptPay)</p>
-                    <div className="bg-white p-2 rounded-lg inline-block border">
-                       <QRCodeSVG 
-                         value={generatePayload(SHOP_PROMPTPAY_NUMBER, { amount: totalPrice })} 
-                         size={150}
-                       />
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center">
-                      * กรุณาสแกนจ่ายก่อนกดสั่งอาหารผ่าน LINE
-                    </p>
-                  </div>
-                )}
+                <Separator className="my-8 bg-border/20" />
                 
-                <div className="bg-primary/5 p-4 rounded-xl border border-primary/10">
-                  <h3 className="font-semibold mb-4 text-primary flex items-center">
-                    <Send className="w-4 h-4 mr-2" />
-                    ข้อมูลผู้สั่งอาหาร
-                  </h3>
-                  
-                  <Form {...form}>
-                    <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="orderType"
-                        render={({ field }) => (
-                          <FormItem className="space-y-3">
-                            <FormControl>
-                              <RadioGroup
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                                className="flex space-x-4"
-                              >
-                                <FormItem className="flex items-center space-x-2 space-y-0 text-sm">
-                                  <FormControl>
-                                    <RadioGroupItem value="dine-in" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal cursor-pointer text-sm">ทานที่ร้าน</FormLabel>
-                                </FormItem>
-                                <FormItem className="flex items-center space-x-2 space-y-0">
-                                  <FormControl>
-                                    <RadioGroupItem value="takeaway" />
-                                  </FormControl>
-                                  <FormLabel className="font-normal cursor-pointer text-sm">สั่งกลับบ้าน</FormLabel>
-                                </FormItem>
-                              </RadioGroup>
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      
-                      <div className="grid grid-cols-2 gap-3">
+                {/* Information Form */}
+                <div className="space-y-6 pb-12">
+                  <div>
+                    <span className="font-accent text-primary tracking-widest text-xs uppercase mb-4 block">ORDER INFO</span>
+                    <Form {...form}>
+                      <form id="checkout-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                         <FormField
                           control={form.control}
-                          name="name"
+                          name="orderType"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel className="text-xs">ชื่อของคุณ <span className="text-destructive">*</span></FormLabel>
                               <FormControl>
-                                <Input className="h-9" placeholder="ชื่อเล่น" {...field} />
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                  className="grid grid-cols-2 gap-4"
+                                >
+                                  <FormItem className="space-y-0">
+                                    <FormControl>
+                                      <RadioGroupItem value="dine-in" className="sr-only" />
+                                    </FormControl>
+                                    <FormLabel className={cn(
+                                      "flex items-center justify-center h-12 rounded-xl border cursor-pointer font-accent tracking-widest text-xs transition-all",
+                                      field.value === "dine-in" ? "bg-primary/20 border-primary text-primary" : "border-border/40 hover:bg-white/5"
+                                    )}>
+                                      DINE-IN
+                                    </FormLabel>
+                                  </FormItem>
+                                  <FormItem className="space-y-0">
+                                    <FormControl>
+                                      <RadioGroupItem value="takeaway" className="sr-only" />
+                                    </FormControl>
+                                    <FormLabel className={cn(
+                                      "flex items-center justify-center h-12 rounded-xl border cursor-pointer font-accent tracking-widest text-xs transition-all",
+                                      field.value === "takeaway" ? "bg-primary/20 border-primary text-primary" : "border-border/40 hover:bg-white/5"
+                                    )}>
+                                      TAKEAWAY
+                                    </FormLabel>
+                                  </FormItem>
+                                </RadioGroup>
                               </FormControl>
-                              <FormMessage className="text-[10px]" />
                             </FormItem>
                           )}
                         />
                         
-                        {orderType === "dine-in" ? (
+                        <div className="grid grid-cols-2 gap-4">
                           <FormField
                             control={form.control}
-                            name="tableNumber"
+                            name="name"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel className="text-xs">หมายเลขโต๊ะ <span className="text-destructive">*</span></FormLabel>
+                                <FormLabel className="font-accent tracking-widest text-[10px] text-muted-foreground uppercase">NAME</FormLabel>
                                 <FormControl>
-                                  <Input className="h-9" placeholder="เช่น 3" {...field} />
+                                  <Input className="bg-white/5 border-border/40 h-11 focus-visible:ring-primary/50" placeholder="Your Name" {...field} />
                                 </FormControl>
-                                <FormMessage className="text-[10px]" />
+                                <FormMessage />
                               </FormItem>
                             )}
                           />
-                        ) : (
-                          <FormField
-                            control={form.control}
-                            name="phone"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-xs">เบอร์โทรศัพท์ (เลือกกรอก)</FormLabel>
-                                <FormControl>
-                                  <Input className="h-9" placeholder="08x-xxx-xxxx" {...field} />
-                                </FormControl>
-                                <FormMessage className="text-[10px]" />
-                              </FormItem>
-                            )}
-                          />
-                        )}
-                      </div>
-                    </form>
-                  </Form>
+                          
+                          {orderType === "dine-in" ? (
+                            <FormField
+                              control={form.control}
+                              name="tableNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="font-accent tracking-widest text-[10px] text-muted-foreground uppercase">TABLE NO.</FormLabel>
+                                  <FormControl>
+                                    <Input className="bg-white/5 border-border/40 h-11 focus-visible:ring-primary/50" placeholder="Table No." {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          ) : (
+                            <FormField
+                              control={form.control}
+                              name="phone"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel className="font-accent tracking-widest text-[10px] text-muted-foreground uppercase">PHONE</FormLabel>
+                                  <FormControl>
+                                    <Input className="bg-white/5 border-border/40 h-11 focus-visible:ring-primary/50" placeholder="08X-XXX-XXXX" {...field} />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                          )}
+                        </div>
+                      </form>
+                    </Form>
+                  </div>
+                  
+                  {/* Payment Info */}
+                  <div className="p-6 rounded-2xl bg-white/5 border border-white/10 flex flex-col items-center">
+                    <span className="font-accent text-primary tracking-widest text-xs uppercase mb-6">PROMPTPAY QR</span>
+                    <div className="bg-white p-3 rounded-2xl inline-block mb-4 shadow-xl">
+                       <QRCodeSVG 
+                         value={generatePayload(SHOP_PROMPTPAY_NUMBER, { amount: totalPrice })} 
+                         size={160}
+                       />
+                    </div>
+                    <p className="text-center font-accent tracking-widest text-[10px] uppercase text-muted-foreground">
+                      Scan before confirming via LINE
+                    </p>
+                  </div>
                 </div>
+              </ScrollArea>
+              
+              {/* Footer with Total and Button */}
+              <div className="p-8 border-t border-border/20 bg-background/50 backdrop-blur-md">
+                <div className="flex justify-between items-end mb-6">
+                  <span className="font-accent tracking-widest text-sm text-muted-foreground uppercase">TOTAL</span>
+                  <div className="flex flex-col items-end">
+                    <span className="font-accent text-primary text-4xl">฿{totalPrice}</span>
+                  </div>
+                </div>
+                <Button 
+                  type="submit" 
+                  form="checkout-form" 
+                  className="w-full h-16 text-lg font-accent tracking-widest uppercase bg-[#00B900] hover:bg-[#009900] text-white rounded-xl shadow-lg shadow-[#00B900]/20"
+                >
+                  Confirm via LINE <Send className="ml-3 h-5 w-5" />
+                </Button>
               </div>
-            </ScrollArea>
-            
-            <div className="pt-4 mt-auto">
-              <Button 
-                type="submit" 
-                form="checkout-form" 
-                className="w-full h-14 text-lg font-bold bg-[#00B900] hover:bg-[#009900]"
-              >
-                สั่งอาหารผ่าน LINE
-              </Button>
-            </div>
-          </>
-        )}
-      </SheetContent>
-    </Sheet>
+            </>
+          )}
+        </SheetContent>
+      </Sheet>
     </>
   )
 }
