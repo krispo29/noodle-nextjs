@@ -98,7 +98,7 @@ const checkoutSchema = z.object({
                   animate={{ scale: 1 }}
                   exit={{ scale: 0 }}
                 >
-                  <Badge className="absolute -top-3 -right-5 px-2 py-0.5 bg-destructive text-white border-none rounded-full min-w-5 justify-center">
+                  <Badge className="absolute -top-1.5 -right-3 px-1.5 py-0.5 bg-red-600 text-white border-2 border-primary text-[10px] font-black rounded-full min-w-[20px] h-5 flex items-center justify-center shadow-lg">
                     {itemCount}
                   </Badge>
                 </motion.div>
